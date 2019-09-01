@@ -10,6 +10,10 @@ namespace OnlineJudgeApi.Helpers
         {
             CreateMap<User, UserDto>();
             CreateMap<UserDto, User>();
+            CreateMap<Task, TaskDto>();
+            CreateMap<TaskDto, Task>();
+            CreateMap<TestCase, TestCaseDto>();
+            CreateMap<TestCaseDto, TestCase>();
         }
     }
 }

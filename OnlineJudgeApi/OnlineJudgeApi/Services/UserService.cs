@@ -86,6 +86,7 @@ namespace OnlineJudgeApi.Services
 
             user.PasswordHash = Convert.ToBase64String(passwordHash);
             user.PasswordSalt = Convert.ToBase64String(passwordSalt);
+            user.TimeRegistered = DateTime.Now;
 
             context.Users.Add(user);
             context.SaveChanges();

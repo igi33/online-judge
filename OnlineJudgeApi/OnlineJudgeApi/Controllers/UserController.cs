@@ -62,15 +62,15 @@ namespace OnlineJudgeApi.Controllers
             // return basic user info (without password) and token to store client side
             return Ok(new
             {
-                Id = user.Id,
-                Username = user.Username,
+                user.Id,
+                user.Username,
                 Token = tokenString
             });
         }
 
         [AllowAnonymous]
-        [HttpPost("register")]
-        public IActionResult Register([FromBody]UserDto userDto)
+        [HttpPost]
+        public IActionResult PostUser([FromBody]UserDto userDto)
         {
             // map dto to entity
             var user = mapper.Map<User>(userDto);
@@ -78,8 +78,9 @@ namespace OnlineJudgeApi.Controllers
             try
             {
                 // save 
-                userService.Create(user, userDto.Password);
-                return Ok();
+                User userEntity = userService.Create(user, userDto.Password);
+                var dto = mapper.Map<UserDto>(userEntity);
+                return CreatedAtAction("GetUser", new { id = userEntity.Id }, dto);
             }
             catch (AppException ex)
             {
@@ -88,16 +89,18 @@ namespace OnlineJudgeApi.Controllers
             }
         }
 
+        [AllowAnonymous]
         [HttpGet]
-        public IActionResult GetAll()
+        public IActionResult GetUsers()
         {
             var users = userService.GetAll();
             var userDtos = mapper.Map<IList<UserDto>>(users);
             return Ok(userDtos);
         }
 
+        [AllowAnonymous]
         [HttpGet("{id}")]
-        public IActionResult GetById(int id)
+        public IActionResult GetUser(int id)
         {
             var user = userService.GetById(id);
             var userDto = mapper.Map<UserDto>(user);
@@ -105,7 +108,7 @@ namespace OnlineJudgeApi.Controllers
         }
 
         [HttpPut("{id}")]
-        public IActionResult Update(int id, [FromBody]UserDto userDto)
+        public IActionResult PutUser(int id, [FromBody]UserDto userDto)
         {
             // map dto to entity and set id
             var user = mapper.Map<User>(userDto);
@@ -125,10 +128,16 @@ namespace OnlineJudgeApi.Controllers
         }
 
         [HttpDelete("{id}")]
-        public IActionResult Delete(int id)
+        public IActionResult DeleteUser(int id)
         {
+            int userId = int.Parse((User.Identity as ClaimsIdentity).FindFirst(ClaimTypes.Name).Value);
+
+            if (userId != id)
+            {
+                return Unauthorized();
+            }
             userService.Delete(id);
-            return Ok();
+            return NoContent();
         }
     }
 }

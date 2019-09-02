@@ -1,15 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.ComponentModel.DataAnnotations.Schema;
 
 namespace OnlineJudgeApi.Entities
 {
     public class TestCase
     {
         public int Id { get; set; }
+
         public string Input { get; set; }
+
         public string Output { get; set; }
+
+        public int TaskId { get; set; }
+
+        [ForeignKey("TaskId")]
         public virtual Task Task { get; set; }
     }
 }

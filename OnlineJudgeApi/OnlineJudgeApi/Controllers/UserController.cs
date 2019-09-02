@@ -110,19 +110,32 @@ namespace OnlineJudgeApi.Controllers
         [HttpPut("{id}")]
         public IActionResult PutUser(int id, [FromBody]UserDto userDto)
         {
-            // map dto to entity and set id
-            var user = mapper.Map<User>(userDto);
-            user.Id = id;
+            if (id != userDto.Id)
+            {
+                return BadRequest();
+            }
+
+            // Map DTO to entity
+            User user = mapper.Map<User>(userDto);
+
+            // Fetch current user id
+            int userId = int.Parse((User.Identity as ClaimsIdentity).FindFirst(ClaimTypes.Name).Value);
+
+            // Return Unauthorized if current user doesn't match model user
+            if (id != userId)
+            {
+                return Unauthorized();
+            }
 
             try
             {
-                // save 
+                // Save 
                 userService.Update(user, userDto.Password);
-                return Ok();
+                return NoContent();
             }
             catch (AppException ex)
             {
-                // return error message if there was an exception
+                // Return error message if there was an exception
                 return BadRequest(new { message = ex.Message });
             }
         }

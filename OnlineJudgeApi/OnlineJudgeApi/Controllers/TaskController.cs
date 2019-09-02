@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OnlineJudgeApi.Dtos;
+using OnlineJudgeApi.Entities;
 using OnlineJudgeApi.Helpers;
 
 namespace OnlineJudgeApi.Controllers
@@ -45,33 +46,117 @@ namespace OnlineJudgeApi.Controllers
                 return NotFound();
             }
 
-            _context.Entry(task).Reference(t => t.User).Load();
+            await _context.Entry(task).Reference(t => t.User).LoadAsync();
+
+            if (User.Identity.IsAuthenticated)
+            {
+                // Fetch current user id
+                int userId = int.Parse((User.Identity as ClaimsIdentity).FindFirst(ClaimTypes.Name).Value);
+
+                // Load test cases only if they belong to current user
+                if (task.UserId == userId)
+                {
+                    await _context.Entry(task).Collection(t => t.TestCases).LoadAsync();
+                }
+            }
 
             TaskDto dto = mapper.Map<TaskDto>(task);
 
             return dto;
         }
 
+        // POST: api/Task
+        [Authorize]
+        [HttpPost]
+        public async Task<ActionResult<TaskDto>> PostTask([FromBody]TaskDto taskDto)
+        {
+            // Fetch current user id
+            int userId = int.Parse((User.Identity as ClaimsIdentity).FindFirst(ClaimTypes.Name).Value);
+
+            Entities.Task task = mapper.Map<Entities.Task>(taskDto);
+            task.UserId = userId;
+            task.TimeSubmitted = DateTime.Now;
+
+            _context.Tasks.Add(task);
+            await _context.SaveChangesAsync();
+
+            TaskDto dto = mapper.Map<TaskDto>(task);
+
+            return CreatedAtAction("GetTask", new { id = task.Id }, dto);
+        }
+
         // PUT: api/Task/5
         [Authorize]
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutTask(int id, Entities.Task task)
+        public async Task<IActionResult> PutTask(int id, [FromBody]TaskDto taskDto)
         {
-            if (id != task.Id)
+            if (id != taskDto.Id)
             {
                 return BadRequest();
             }
 
+            Entities.Task task = await _context.Tasks.FindAsync(id);
+            if (task == null)
+            {
+                return NotFound();
+            }
+
+
+            await _context.Entry(task).Reference(t => t.User).LoadAsync();
+            await _context.Entry(task).Collection(t => t.TestCases).LoadAsync();
+
+            // Fetch current user id
             int userId = int.Parse((User.Identity as ClaimsIdentity).FindFirst(ClaimTypes.Name).Value);
 
             if (task.UserId != userId)
             {
-                // task doesn't belong to current user, edit not allowed
+                // Task doesn't belong to current user, edit not allowed
                 return Unauthorized();
             }
 
-            _context.Entry(task).State = EntityState.Modified;
+            // Update fields according to DTO
+            // TODO: Validate
+            task.Name = taskDto.Name;
+            task.Description = taskDto.Description;
+            task.MemoryLimit = taskDto.MemoryLimit;
+            task.TimeLimit = taskDto.TimeLimit;
+            task.Origin = taskDto.Origin;
 
+            // Handle test cases
+            int tcDiff = taskDto.TestCases.Count - task.TestCases.Count;
+            int tcCountMin = Math.Min(taskDto.TestCases.Count, task.TestCases.Count);
+
+            // Modify existing test cases
+            for (int i = 0; i < tcCountMin; ++i)
+            {
+                task.TestCases.ElementAt(i).Input = taskDto.TestCases.ElementAt(i).Input;
+                task.TestCases.ElementAt(i).Output = taskDto.TestCases.ElementAt(i).Output;
+            }
+
+            if (tcDiff > 0)
+            {
+                // Add new test cases if needed
+                for (int j = 0; j < tcDiff; ++j)
+                {
+                    task.TestCases.Add(new TestCase
+                    {
+                        Input = taskDto.TestCases.ElementAt(tcCountMin + j).Input,
+                        Output = taskDto.TestCases.ElementAt(tcCountMin + j).Output
+                    });
+                }
+            }
+            else if (tcDiff < 0)
+            {
+                // Delete excess test cases if needed
+                int numToDelete = -tcDiff;
+
+                for (int j = 0; j < numToDelete; ++j)
+                {
+                    task.TestCases.Remove(task.TestCases.Last());
+                }
+            }
+
+            // Save changes
             try
             {
                 await _context.SaveChangesAsync();
@@ -91,31 +176,12 @@ namespace OnlineJudgeApi.Controllers
             return NoContent();
         }
 
-        // POST: api/Task
-        [Authorize]
-        [HttpPost]
-        public async Task<ActionResult<TaskDto>> PostTask([FromBody]TaskDto taskDto)
-        {
-            int userId = int.Parse((User.Identity as ClaimsIdentity).FindFirst(ClaimTypes.Name).Value);
-
-            Entities.Task task = mapper.Map<Entities.Task>(taskDto);
-            task.UserId = userId;
-            task.TimeSubmitted = DateTime.Now;
-
-            _context.Tasks.Add(task);
-            await _context.SaveChangesAsync();
-
-            var dto = mapper.Map<TaskDto>(task);
-
-            return CreatedAtAction("GetTask", new { id = task.Id }, dto);
-        }
-
         // DELETE: api/Task/5
         [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteTask(int id)
         {
-            var task = await _context.Tasks.FindAsync(id);
+            Entities.Task task = await _context.Tasks.FindAsync(id);
             if (task == null)
             {
                 return NotFound();

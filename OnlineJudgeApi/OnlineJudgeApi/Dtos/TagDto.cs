@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace OnlineJudgeApi.Entities
+namespace OnlineJudgeApi.Dtos
 {
-    public class Tag
+    public class TagDto
     {
-        public Tag()
+        public TagDto()
         {
-            TaskTags = new HashSet<TaskTag>();
+            TaskTags = new HashSet<TaskTagDto>();
         }
 
         public int Id { get; set; }
@@ -20,6 +20,6 @@ namespace OnlineJudgeApi.Entities
 
         public string Description { get; set; }
 
-        public virtual ICollection<TaskTag> TaskTags { get; set; }
+        public virtual ICollection<TaskTagDto> TaskTags { get; set; }
     }
 }

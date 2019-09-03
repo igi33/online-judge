@@ -30,9 +30,9 @@ namespace OnlineJudgeApi.Entities
         [ForeignKey("TaskId")]
         public virtual Task Task { get; set; }
 
-        public int? ComputerLanguageId { get; set; }
+        public int? LangId { get; set; }
 
-        [ForeignKey("ComputerLanguageId")]
+        [ForeignKey("LangId")]
         public virtual ComputerLanguage ComputerLanguage { get; set; }
     }
 }

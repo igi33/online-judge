@@ -77,12 +77,13 @@ namespace OnlineJudgeApi.Controllers
             task.UserId = userId;
             task.TimeSubmitted = DateTime.Now;
 
+            // Save to DB
             _context.Tasks.Add(task);
             await _context.SaveChangesAsync();
 
-            TaskDto dto = mapper.Map<TaskDto>(task);
+            TaskDto responseDto = mapper.Map<TaskDto>(task);
 
-            return CreatedAtAction("GetTask", new { id = task.Id }, dto);
+            return CreatedAtAction("GetTask", new { id = task.Id }, responseDto);
         }
 
         // PUT: api/Task/5

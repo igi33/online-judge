@@ -15,6 +15,8 @@ namespace OnlineJudgeApi.Dtos
 
         public string Status { get; set; }
 
+        public string Message { get; set; }
+
         public int ExecutionTime { get; set; }
 
         public int ExecutionMemory { get; set; }
@@ -22,6 +24,8 @@ namespace OnlineJudgeApi.Dtos
         public virtual UserDto User { get; set; }
 
         public virtual TaskDto Task { get; set; }
+
+        public int LangId { get; set; }
 
         public virtual ComputerLanguageDto ComputerLanguage { get; set; }
     }

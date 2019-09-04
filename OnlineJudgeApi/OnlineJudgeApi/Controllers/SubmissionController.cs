@@ -32,16 +32,39 @@ namespace OnlineJudgeApi.Controllers
             gradingHandled = false;
         }
 
-        // GET: api/Submission
-        [HttpGet]
-        public async Task<IActionResult> GetSubmissions()
+        // Get recent submissions, possibly filtered by user and by task (0 as id gets all)
+        // GET: api/Submission/task/0/user/0
+        [HttpGet("task/{taskId}/user/{userId}")]
+        public async Task<IActionResult> GetSubmissions(int taskId, int userId)
         {
-            var submissions = await _context.Submissions.Include(s => s.Task).Include(s => s.User).Include(s => s.ComputerLanguage).ToListAsync();
+            int currentUserId = 0; // User not logged in
+            if (User.Identity.IsAuthenticated)
+            {
+                // Fetch current user id
+                currentUserId = int.Parse((User.Identity as ClaimsIdentity).FindFirst(ClaimTypes.Name).Value);
+            }
+
+            var submissions = await _context.Submissions.Include(s => s.Task).Include(s => s.User).Include(s => s.ComputerLanguage)
+                .Where(s => (taskId != 0 && s.TaskId == taskId || taskId == 0 && s.TaskId > 0) && (userId != 0 && s.UserId == userId || userId == 0 && s.UserId > 0))
+                .OrderByDescending(s => s.Id)
+                .ToListAsync();
+
             var submissionDtos = mapper.Map<IList<SubmissionDto>>(submissions);
+
+            foreach (SubmissionDto sDto in submissionDtos)
+            {
+                if (currentUserId == 0 || sDto.User.Id != currentUserId)
+                {
+                    // Hide source code if shouldn't be seen
+                    sDto.SourceCode = "";
+                }
+            }
+
             return Ok(submissionDtos);
         }
 
         // GET: api/Submission/5
+        [Authorize]
         [HttpGet("{id}")]
         public async Task<ActionResult<SubmissionDto>> GetSubmission(int id)
         {
@@ -57,7 +80,36 @@ namespace OnlineJudgeApi.Controllers
 
             SubmissionDto dto = mapper.Map<SubmissionDto>(submission);
 
+            // Fetch current user id
+            int userId = int.Parse((User.Identity as ClaimsIdentity).FindFirst(ClaimTypes.Name).Value);
+            if (dto.User.Id != userId)
+            {
+                // Hide source code
+                dto.SourceCode = "";
+            }
+
             return dto;
+        }
+
+        // Get fastest accepted submissions for task
+        // GET: api/Submission/task/5/best
+        [HttpGet("task/{taskId}/best")]
+        public async Task<IActionResult> GetBestSubmissionsByTask(int taskId)
+        {
+            var submissions = await _context.Submissions.Include(s => s.User).Include(s => s.ComputerLanguage)
+                .Where(s => s.TaskId == taskId && s.Status.Equals("AC"))
+                .OrderBy(s => s.ExecutionTime)
+                .ToListAsync();
+
+            var submissionDtos = mapper.Map<IList<SubmissionDto>>(submissions);
+
+            foreach (SubmissionDto sDto in submissionDtos)
+            {
+                // Hide source code
+                sDto.SourceCode = "";
+            }
+
+            return Ok(submissionDtos);
         }
 
         // POST: api/Submission/task/5
@@ -116,10 +168,10 @@ namespace OnlineJudgeApi.Controllers
                 p.WaitForExit();
             }
 
-            // Wait for the grading thread
+            // Wait for the grading thread, gradingHandled is guaranteed to become true
             while (!gradingHandled)
             {
-                Thread.Sleep(100);
+                Thread.Sleep(150);
             }
 
             // Save to DB

@@ -8,7 +8,7 @@ namespace OnlineJudgeApi.Dtos
         public TaskDto()
         {
             TestCases = new HashSet<TestCaseDto>();
-            TaskTags = new HashSet<TaskTagDto>();
+            Tags = new HashSet<TagDto>();
         }
 
         public int Id { get; set; }
@@ -29,6 +29,6 @@ namespace OnlineJudgeApi.Dtos
 
         public virtual ICollection<TestCaseDto> TestCases { get; set; }
 
-        public virtual ICollection<TaskTagDto> TaskTags { get; set; }
+        public virtual ICollection<TagDto> Tags { get; set; }
     }
 }

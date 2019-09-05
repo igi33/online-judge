@@ -16,8 +16,6 @@ namespace OnlineJudgeApi.Helpers
             CreateMap<TestCaseDto, TestCase>();
             CreateMap<Tag, TagDto>();
             CreateMap<TagDto, Tag>();
-            CreateMap<TaskTag, TaskTagDto>();
-            CreateMap<TaskTagDto, TaskTag>();
             CreateMap<ComputerLanguage, ComputerLanguageDto>();
             CreateMap<ComputerLanguageDto, ComputerLanguage>();
             CreateMap<Submission, SubmissionDto>();

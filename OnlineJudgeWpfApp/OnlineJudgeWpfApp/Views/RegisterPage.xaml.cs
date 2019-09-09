@@ -1,30 +1,24 @@
 ﻿using OnlineJudgeWpfApp.Models;
 using OnlineJudgeWpfApp.Operations;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using OnlineJudgeWpfApp.ViewModels;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
-using System.Windows.Shapes;
 
-namespace OnlineJudgeWpfApp.Pages
+namespace OnlineJudgeWpfApp.Views
 {
     /// <summary>
     /// Interaction logic for RegisterPage.xaml
     /// </summary>
     public partial class RegisterPage : Page
     {
-        public RegisterPage()
+        MainWindowViewModel MainWindowVm { get; set; }
+
+        public RegisterPage(MainWindowViewModel mainWindowVm)
         {
             InitializeComponent();
+
+            MainWindowVm = mainWindowVm;
         }
 
         /**
@@ -38,7 +32,7 @@ namespace OnlineJudgeWpfApp.Pages
             string password = pbxPassword.Password;
             string email = tbxEmail.Text;
 
-            ApiOperations ops = new ApiOperations();
+            UserOperations ops = new UserOperations();
             User user = ops.RegisterUser(username, password, email);
             if (user == null)
             {
@@ -47,17 +41,7 @@ namespace OnlineJudgeWpfApp.Pages
             }
 
             MessageBox.Show("Registration successful");
-            NavigationService.Navigate(new LoginPage());
-        }
-
-        /**
-         * Method to handle going back to the previous screen
-         * @param object  sender
-         * @param RoutedEventArgs e
-         */
-        private void btnBack_Click(object sender, RoutedEventArgs e)
-        {
-            NavigationService.GoBack();
+            NavigationService.Navigate(new LoginPage(MainWindowVm));
         }
     }
 }

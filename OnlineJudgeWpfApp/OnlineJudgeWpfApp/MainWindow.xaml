@@ -4,7 +4,39 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:OnlineJudgeWpfApp"
+        xmlns:VM="clr-namespace:OnlineJudgeWpfApp.ViewModels"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Frame x:Name="frame" Content="Frame" Margin="0" Source="/OnlineJudgeWpfApp;component/Pages/LoginPage.xaml" NavigationUIVisibility="Hidden"/>
+        Title="MainWindow" Height="600" Width="1100">
+    <Window.DataContext>
+        <VM:MainWindowViewModel />
+    </Window.DataContext>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="60" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="1*" />
+            <ColumnDefinition Width="4*" />
+        </Grid.ColumnDefinitions>
+
+        <DockPanel Margin="20,0,15,0" Grid.Row="0" Grid.Column="1">
+            <TextBlock VerticalAlignment="Center" FontSize="32">Online Judge</TextBlock>
+            <TextBlock VerticalAlignment="Center" TextAlignment="Right" FontSize="15" Text="{Binding Username, StringFormat=Hello {0}!}" />
+        </DockPanel>
+        <StackPanel Grid.Row="1" Grid.Column="0">
+            <StackPanel Visibility="{Binding LoggedIn, Converter={StaticResource BoolToVisInv}}">
+                <Button BorderThickness="0" Background="White" Padding="8" HorizontalContentAlignment="Left" Click="Nav_Login_Click">Login</Button>
+                <Button BorderThickness="0" Background="White" Padding="8" HorizontalContentAlignment="Left" Click="Nav_Reg_Click">Register</Button>
+            </StackPanel>
+            <StackPanel Visibility="{Binding LoggedIn, Converter={StaticResource BoolToVis}}">
+                <Button BorderThickness="0" Background="White" Padding="8" HorizontalContentAlignment="Left" Click="Nav_Profile_Click">My Profile</Button>
+                <Button BorderThickness="0" Background="White" Padding="8" HorizontalContentAlignment="Left" Click="Nav_Logout_Click">Logout</Button>
+            </StackPanel>
+            <Button BorderThickness="0" Background="White" Padding="8" HorizontalContentAlignment="Left">Tasks</Button>
+            <Button BorderThickness="0" Background="White" Padding="8" HorizontalContentAlignment="Left">Submissions</Button>
+            <Button BorderThickness="0" Background="White" Padding="8" HorizontalContentAlignment="Left">Tags</Button>
+        </StackPanel>
+        <Frame x:Name="frame" Content="" Margin="0" Grid.Row="1" Grid.Column="1" Source="" NavigationUIVisibility="Hidden"/>
+    </Grid>
 </Window>

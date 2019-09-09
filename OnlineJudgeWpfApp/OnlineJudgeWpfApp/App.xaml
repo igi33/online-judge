@@ -2,8 +2,16 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:OnlineJudgeWpfApp"
+             xmlns:cv="clr-namespace:OnlineJudgeWpfApp.Converters"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
-         
+        <cv:BooleanToVisibilityConverter
+            x:Key="BoolToVis"
+            True="Visible" 
+            False="Collapsed" />
+        <cv:BooleanToVisibilityConverter
+            x:Key="BoolToVisInv"
+            True="Collapsed" 
+            False="Visible" />
     </Application.Resources>
 </Application>

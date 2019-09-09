@@ -1,0 +1,37 @@
+﻿<Page x:Class="OnlineJudgeWpfApp.Views.ProfilePage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:local="clr-namespace:OnlineJudgeWpfApp.Views"
+      mc:Ignorable="d" 
+      d:DesignHeight="350" d:DesignWidth="500"
+      Title="ProfilePage"
+      Loaded="profilePage_Loaded">
+
+    <StackPanel HorizontalAlignment="Left" Margin="20">
+        <TextBlock Text="User Profile" FontSize="25" />
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="100" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Text="ID:" Grid.Row="0" Grid.Column="0" />
+            <TextBlock Text="Username:" Grid.Row="1" Grid.Column="0" />
+            <TextBlock Text="Email:" Grid.Row="2" Grid.Column="0" />
+            <TextBlock Text="Date registered:" Grid.Row="3" Grid.Column="0" />
+
+            <TextBlock x:Name="tbkId" Text="" Grid.Row="0" Grid.Column="1" />
+            <TextBlock x:Name="tbkUsername" Text="" Grid.Row="1" Grid.Column="1" />
+            <TextBlock x:Name="tbkEmail" Text="" Grid.Row="2" Grid.Column="1" />
+            <TextBlock x:Name="tbkTimereg" Text="" Grid.Row="3" Grid.Column="1" />
+        </Grid>
+    </StackPanel>
+</Page>

@@ -1,0 +1,17 @@
+﻿<Page x:Class="OnlineJudgeWpfApp.Views.TagListPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:local="clr-namespace:OnlineJudgeWpfApp.Views"
+      mc:Ignorable="d" 
+      d:DesignHeight="250" d:DesignWidth="400"
+      Title="TagListPage"
+      Style="{StaticResource PageFontStyle}"
+      Loaded="tagListPage_Loaded">
+
+    <StackPanel Margin="20,0,20,20">
+        <TextBlock x:Name="tbkHeading" Text="Tag List" FontSize="25" />
+        <StackPanel VerticalAlignment="Top" Orientation="Horizontal" x:Name="spTagList" Margin="0,15,0,0"></StackPanel>
+    </StackPanel>
+</Page>

@@ -4,39 +4,46 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:OnlineJudgeWpfApp"
-        xmlns:VM="clr-namespace:OnlineJudgeWpfApp.ViewModels"
+        xmlns:vm="clr-namespace:OnlineJudgeWpfApp.ViewModels"
         mc:Ignorable="d"
+        Style="{StaticResource FontStyle}"
         Title="MainWindow" Height="600" Width="1100">
     <Window.DataContext>
-        <VM:MainWindowViewModel />
+        <vm:MainWindowViewModel />
     </Window.DataContext>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="60" />
-            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="1*" />
-            <ColumnDefinition Width="4*" />
+            <ColumnDefinition Width="6*" />
         </Grid.ColumnDefinitions>
 
-        <DockPanel Margin="20,0,15,0" Grid.Row="0" Grid.Column="1">
-            <TextBlock VerticalAlignment="Center" FontSize="32">Online Judge</TextBlock>
-            <TextBlock VerticalAlignment="Center" TextAlignment="Right" FontSize="15" Text="{Binding Username, StringFormat=Hello {0}!}" />
+        <DockPanel Background="WhiteSmoke" Margin="0" Grid.Row="0" Grid.Column="0" />
+        <DockPanel Background="WhiteSmoke" Grid.Row="0" Grid.Column="1">
+            <TextBlock Padding="20,0,0,0" VerticalAlignment="Center" FontSize="32">Online Judge</TextBlock>
+            <TextBlock Padding="0,0,20,0" VerticalAlignment="Center" TextAlignment="Right" FontSize="15" Text="{Binding Username, StringFormat=Hello {0}!}" />
         </DockPanel>
-        <StackPanel Grid.Row="1" Grid.Column="0">
+        <StackPanel Margin="0,10,0,0" Grid.Row="1" Grid.Column="0">
             <StackPanel Visibility="{Binding LoggedIn, Converter={StaticResource BoolToVisInv}}">
-                <Button BorderThickness="0" Background="White" Padding="8" HorizontalContentAlignment="Left" Click="Nav_Login_Click">Login</Button>
-                <Button BorderThickness="0" Background="White" Padding="8" HorizontalContentAlignment="Left" Click="Nav_Reg_Click">Register</Button>
+                <Button Cursor="Hand" BorderThickness="0" Background="White" Padding="8" HorizontalContentAlignment="Left" Click="Nav_Login_Click">Login</Button>
+                <Button Cursor="Hand" BorderThickness="0" Background="White" Padding="8" HorizontalContentAlignment="Left" Click="Nav_Reg_Click">Register</Button>
             </StackPanel>
             <StackPanel Visibility="{Binding LoggedIn, Converter={StaticResource BoolToVis}}">
-                <Button BorderThickness="0" Background="White" Padding="8" HorizontalContentAlignment="Left" Click="Nav_Profile_Click">My Profile</Button>
-                <Button BorderThickness="0" Background="White" Padding="8" HorizontalContentAlignment="Left" Click="Nav_Logout_Click">Logout</Button>
+                <Button Cursor="Hand" BorderThickness="0" Background="White" Padding="8" HorizontalContentAlignment="Left" Click="Nav_Profile_Click">My Profile</Button>
+                <Button Cursor="Hand" BorderThickness="0" Background="White" Padding="8" HorizontalContentAlignment="Left" Click="Nav_Logout_Click">Logout</Button>
             </StackPanel>
-            <Button BorderThickness="0" Background="White" Padding="8" HorizontalContentAlignment="Left">Tasks</Button>
-            <Button BorderThickness="0" Background="White" Padding="8" HorizontalContentAlignment="Left">Submissions</Button>
-            <Button BorderThickness="0" Background="White" Padding="8" HorizontalContentAlignment="Left">Tags</Button>
+            <Button Cursor="Hand" BorderThickness="0" Background="White" Padding="8" HorizontalContentAlignment="Left" Click="Nav_Tasks_Click">Tasks</Button>
+            <Button Cursor="Hand" BorderThickness="0" Background="White" Padding="8" HorizontalContentAlignment="Left" Click="Nav_Submissions_Click">Submissions</Button>
+            <Button Cursor="Hand" BorderThickness="0" Background="White" Padding="8" HorizontalContentAlignment="Left" Click="Nav_Tags_Click">Tags</Button>
         </StackPanel>
-        <Frame x:Name="frame" Content="" Margin="0" Grid.Row="1" Grid.Column="1" Source="" NavigationUIVisibility="Hidden"/>
+        <ScrollViewer Grid.Row="1" Grid.Column="1" VerticalScrollBarVisibility="Auto">
+            <Frame x:Name="frame" Content=""  Margin="0,10,0,0" Source=""
+                   NavigationUIVisibility="Hidden"
+                   LoadCompleted="frame_LoadCompleted"
+                   DataContextChanged="frame_DataContextChanged" />
+        </ScrollViewer>
     </Grid>
 </Window>

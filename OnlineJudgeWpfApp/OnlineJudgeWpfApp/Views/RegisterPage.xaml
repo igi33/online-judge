@@ -6,9 +6,10 @@
       xmlns:local="clr-namespace:OnlineJudgeWpfApp.Views"
       mc:Ignorable="d" 
       d:DesignHeight="350" d:DesignWidth="600"
+      Style="{StaticResource PageFontStyle}"
       Title="RegisterPage">
 
-    <StackPanel HorizontalAlignment="Left" Margin="20" Width="300">
+    <StackPanel HorizontalAlignment="Left" Margin="20,0,20,20" Width="300">
         <TextBlock Text="Register" FontSize="25" />
         <TextBlock Text="Username:" Margin="0,15,0,0" />
         <TextBox x:Name="tbxUsername" Padding="5" />

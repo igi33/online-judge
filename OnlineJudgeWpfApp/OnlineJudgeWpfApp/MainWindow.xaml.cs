@@ -28,7 +28,7 @@ namespace OnlineJudgeWpfApp
         public MainWindow()
         {
             InitializeComponent();
-            frame.NavigationService.Navigate(new LoginPage(MainWindowVm));
+            frame.NavigationService.Navigate(new TaskListPage(MainWindowVm));
         }
 
         private void Nav_Login_Click(object sender, RoutedEventArgs e)
@@ -57,6 +57,42 @@ namespace OnlineJudgeWpfApp
             MainWindowVm.LoggedIn = false;
             MainWindowVm.Username = "guest";
             frame.NavigationService.Navigate(new LoginPage(MainWindowVm));
+        }
+
+        private void Nav_Tasks_Click(object sender, RoutedEventArgs e)
+        {
+            frame.NavigationService.Navigate(new TaskListPage(MainWindowVm));
+        }
+
+        private void Nav_Tags_Click(object sender, RoutedEventArgs e)
+        {
+            frame.NavigationService.Navigate(new TagListPage(MainWindowVm));
+        }
+
+        private void Nav_Submissions_Click(object sender, RoutedEventArgs e)
+        {
+            frame.NavigationService.Navigate(new SubmissionListPage(MainWindowVm));
+        }
+
+        // Methods to ensure that Pages inherit the DataContext of frame
+        private void frame_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            UpdateFrameDataContext(sender);
+        }
+
+        private void frame_LoadCompleted(object sender, NavigationEventArgs e)
+        {
+            UpdateFrameDataContext(sender);
+        }
+
+        private void UpdateFrameDataContext(object sender)
+        {
+            FrameworkElement content = frame.Content as FrameworkElement;
+            if (content == null)
+            {
+                return;
+            }
+            content.DataContext = frame.DataContext;
         }
     }
 }

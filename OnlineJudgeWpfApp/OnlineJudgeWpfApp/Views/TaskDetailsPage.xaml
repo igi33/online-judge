@@ -1,0 +1,56 @@
+﻿<Page x:Class="OnlineJudgeWpfApp.Views.TaskDetailsPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:local="clr-namespace:OnlineJudgeWpfApp.Views"
+      mc:Ignorable="d" 
+      d:DesignHeight="750" d:DesignWidth="500"
+      Title="TaskDetailsPage"
+      Style="{StaticResource PageFontStyle}"
+      Loaded="taskPage_Loaded">
+
+    <StackPanel HorizontalAlignment="Left" Margin="20,0,20,20">
+        <TextBlock Text="Task Details" FontSize="25" />
+        <Grid Margin="0,10,0,0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="100" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Padding="5" Text="ID:" Grid.Row="0" Grid.Column="0" />
+            <TextBlock Padding="5" Text="Name:" Grid.Row="1" Grid.Column="0" />
+            <TextBlock Padding="5" Text="Description:" Grid.Row="2" Grid.Column="0" />
+            <TextBlock Padding="5" Text="Time Limit (ms):" Grid.Row="3" Grid.Column="0" />
+            <TextBlock Padding="5" Text="Submitted on:" Grid.Row="4" Grid.Column="0" />
+            <TextBlock Padding="5" Text="Submitted by:" Grid.Row="5" Grid.Column="0" />
+            <TextBlock Padding="5" Text="Origin:" Grid.Row="6" Grid.Column="0" />
+            <TextBlock Padding="5" Text="Tags:" Grid.Row="7" Grid.Column="0" />
+
+            <TextBlock Padding="5" x:Name="tbkId" Text="" Grid.Row="0" Grid.Column="1" />
+            <TextBlock Padding="5" x:Name="tbkName" Text="" Grid.Row="1" Grid.Column="1" />
+            <TextBlock TextWrapping="Wrap" Padding="5" x:Name="tbkDesc" Text="" Grid.Row="2" Grid.Column="1" />
+            <TextBlock Padding="5" x:Name="tbkTimelimit" Text="" Grid.Row="3" Grid.Column="1" />
+            <TextBlock Padding="5" x:Name="tbkDatetime" Text="" Grid.Row="4" Grid.Column="1" />
+            <TextBlock Padding="5" x:Name="tbkSubmitter" Text="" Grid.Row="5" Grid.Column="1" />
+            <TextBlock Padding="5" x:Name="tbkOrigin" Text="" Grid.Row="6" Grid.Column="1" />
+            <StackPanel Orientation="Horizontal" x:Name="spTags" Grid.Row="7" Grid.Column="1"></StackPanel>
+        </Grid>
+        <StackPanel Visibility="{Binding LoggedIn, Converter={StaticResource BoolToVis}}" Margin="0,15,0,0">
+            <TextBlock Text="Submit Solution" FontSize="20" />
+            <ComboBox x:Name="cbLang" Margin="0,10,0,0"></ComboBox>
+            <TextBox Padding="5" FontFamily="Courier New" x:Name="sourceCode" Margin="0,10,0,0" Height="300"></TextBox>
+            <Button Margin="0,10,0,0" Content="Submit" Click="Submit_Solution" Width="150" />
+        </StackPanel>
+    </StackPanel>
+</Page>

@@ -9,25 +9,20 @@ using System.Threading.Tasks;
 
 namespace OnlineJudgeWpfApp.Operations
 {
-    class SubmissionOperations : ApiOperations
+    class ComputerLanguageOperations : ApiOperations
     {
-        public List<Submission> GetSubmissions(int taskId = 0, int userId = 0)
+        public List<ComputerLanguage> GetLangs()
         {
-            string endpoint = string.Format("{0}/submission/task/{1}/user/{2}", baseUrl, taskId, userId);
+            string endpoint = string.Format("{0}/computerlanguage", baseUrl);
 
             WebClient wc = new WebClient();
             wc.Headers["Content-Type"] = "application/json";
 
-            if (Globals.LoggedInUser != null)
-            {
-                wc.Headers["Authorization"] = string.Format("Bearer {0}", Globals.LoggedInUser.Token);
-            }
-
             try
             {
                 string response = wc.DownloadString(endpoint);
-                List<Submission> submissions = JsonConvert.DeserializeObject<List<Submission>>(response);
-                return submissions;
+                List<ComputerLanguage> langs = JsonConvert.DeserializeObject<List<ComputerLanguage>>(response);
+                return langs;
             }
             catch (Exception)
             {

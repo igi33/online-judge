@@ -6,12 +6,13 @@
       xmlns:local="clr-namespace:OnlineJudgeWpfApp.Views"
       mc:Ignorable="d" 
       d:DesignHeight="350" d:DesignWidth="500"
+      Style="{StaticResource PageFontStyle}"
       Title="ProfilePage"
       Loaded="profilePage_Loaded">
 
-    <StackPanel HorizontalAlignment="Left" Margin="20">
+    <StackPanel HorizontalAlignment="Left" Margin="20,0,20,20">
         <TextBlock Text="User Profile" FontSize="25" />
-        <Grid>
+        <Grid Margin="0,10,0,0">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
@@ -20,18 +21,18 @@
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="100" />
-                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
 
-            <TextBlock Text="ID:" Grid.Row="0" Grid.Column="0" />
-            <TextBlock Text="Username:" Grid.Row="1" Grid.Column="0" />
-            <TextBlock Text="Email:" Grid.Row="2" Grid.Column="0" />
-            <TextBlock Text="Date registered:" Grid.Row="3" Grid.Column="0" />
+            <TextBlock Padding="5" Text="ID:" Grid.Row="0" Grid.Column="0" />
+            <TextBlock Padding="5" Text="Username:" Grid.Row="1" Grid.Column="0" />
+            <TextBlock Padding="5" Text="Email:" Grid.Row="2" Grid.Column="0" />
+            <TextBlock Padding="5" Text="Date registered:" Grid.Row="3" Grid.Column="0" />
 
-            <TextBlock x:Name="tbkId" Text="" Grid.Row="0" Grid.Column="1" />
-            <TextBlock x:Name="tbkUsername" Text="" Grid.Row="1" Grid.Column="1" />
-            <TextBlock x:Name="tbkEmail" Text="" Grid.Row="2" Grid.Column="1" />
-            <TextBlock x:Name="tbkTimereg" Text="" Grid.Row="3" Grid.Column="1" />
+            <TextBlock Padding="5" x:Name="tbkId" Text="" Grid.Row="0" Grid.Column="1" />
+            <TextBlock Padding="5" x:Name="tbkUsername" Text="" Grid.Row="1" Grid.Column="1" />
+            <TextBlock Padding="5" x:Name="tbkEmail" Text="" Grid.Row="2" Grid.Column="1" />
+            <TextBlock Padding="5" x:Name="tbkTimereg" Text="" Grid.Row="3" Grid.Column="1" />
         </Grid>
     </StackPanel>
 </Page>

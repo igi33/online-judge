@@ -36,6 +36,23 @@ namespace OnlineJudgeApi.Controllers
             return Ok(taskDtos);
         }
 
+        // Get all tasks tagged as tagId
+        // GET: api/Task/tag/6
+        [HttpGet("tag/{tagId}")]
+        public async Task<IActionResult> GetTasksByTag(int tagId)
+        {
+            var tag = await _context.Tags.FindAsync(tagId);
+
+            if (tag == null)
+            {
+                return NotFound();
+            }
+
+            var tasks = await _context.Tasks.Where(t => t.TaskTags.Any(tt => tt.TagId == tagId)).Include(t => t.User).ToListAsync();
+            var taskDtos = mapper.Map<IList<TaskDto>>(tasks);
+            return Ok(taskDtos);
+        }
+
         // GET: api/Task/5
         [HttpGet("{id}")]
         public async Task<ActionResult<TaskDto>> GetTask(int id)
@@ -62,6 +79,15 @@ namespace OnlineJudgeApi.Controllers
             }
 
             TaskDto dto = mapper.Map<TaskDto>(task);
+
+            // Load tags and insert to DTO
+            await _context.Entry(task).Collection(t => t.TaskTags).LoadAsync();
+            foreach (TaskTag tt in task.TaskTags)
+            {
+                await _context.Entry(tt).Reference(t => t.Tag).LoadAsync();
+                TagDto tagDto = mapper.Map<TagDto>(tt.Tag);
+                dto.Tags.Add(tagDto);
+            }
 
             return dto;
         }

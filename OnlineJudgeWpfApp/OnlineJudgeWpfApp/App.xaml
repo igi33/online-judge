@@ -13,5 +13,35 @@
             x:Key="BoolToVisInv"
             True="Collapsed" 
             False="Visible" />
+        <Style x:Key="CellElementStyle" TargetType="TextBlock">
+            <Setter Property="Margin" Value="7" />
+        </Style>
+        <Style x:Key="DataGridCellStyle" TargetType="{x:Type DataGridCell}">
+            <Style.Triggers>
+                <Trigger Property="DataGridCell.IsSelected" Value="True">
+                    <Setter Property="BorderBrush">
+                        <Setter.Value>
+                            <SolidColorBrush Color="Transparent"/>
+                        </Setter.Value>
+                    </Setter>
+                    <Setter Property="Foreground"
+                            Value="{DynamicResource
+                                   {x:Static SystemColors.ControlTextBrushKey}}"/>
+                    <Setter Property="Background">
+                        <Setter.Value>
+                            <SolidColorBrush Color="Transparent"/>
+                        </Setter.Value>
+                    </Setter>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="FontStyle" TargetType="{x:Type Control}">
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="FontFamily" Value="Microsoft Sans Serif" />
+        </Style>
+        <Style x:Key="PageFontStyle" TargetType="{x:Type Page}">
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="FontFamily" Value="Microsoft Sans Serif" />
+        </Style>
     </Application.Resources>
 </Application>

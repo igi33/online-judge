@@ -1,0 +1,42 @@
+﻿<Page x:Class="OnlineJudgeWpfApp.Views.TaskListPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:local="clr-namespace:OnlineJudgeWpfApp.Views"
+      mc:Ignorable="d" 
+      d:DesignHeight="350" d:DesignWidth="600"
+      Title="TaskListPage"
+      Style="{StaticResource PageFontStyle}"
+      Loaded="taskListPage_Loaded">
+
+    <StackPanel Margin="20,0,20,20">
+        <TextBlock x:Name="tbkHeading" Text="Task List" FontSize="25" />
+        <DataGrid Name="dgTasks" Margin="0,15,0,0"
+                  AutoGenerateColumns="False"
+                  CanUserAddRows="False"
+                  IsReadOnly="True"
+                  GridLinesVisibility="None"
+                  BorderThickness="0"
+                  CellStyle="{StaticResource DataGridCellStyle}">
+            <DataGrid.Columns>
+                <DataGridTextColumn ElementStyle="{StaticResource CellElementStyle}" Header="ID" Binding="{Binding Id}" />
+                <DataGridTemplateColumn Header="Task Name">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Button Tag="{Binding Id}" Cursor="Hand" BorderThickness="0" Background="White" Click="goToTaskPage" Content="{Binding Name}" />
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTextColumn ElementStyle="{StaticResource CellElementStyle}" Header="Submitted on" Binding="{Binding TimeSubmitted}" />
+                <DataGridTemplateColumn Header="Submitted by">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Button Tag="{Binding User.Id}" Cursor="Hand" BorderThickness="0" Background="White" Click="goToProfilePage" Content="{Binding User.Username}" />
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+            </DataGrid.Columns>
+        </DataGrid>
+    </StackPanel>
+</Page>

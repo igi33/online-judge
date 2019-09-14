@@ -43,6 +43,34 @@ namespace OnlineJudgeWpfApp.Views
         private void taskPage_Loaded(object sender, RoutedEventArgs e)
         {
             ShowTaskDetails();
+            ShowFastestSolutions();
+            ShowAvailableLangs();
+        }
+
+        private void ShowFastestSolutions()
+        {
+            SubmissionOperations ops = new SubmissionOperations();
+            List<Submission> submissions = ops.GetFastestSubmissionsOfTask(Id);
+            if (submissions == null)
+            {
+                MessageBox.Show("Fastest solutions request failed");
+                NavigationService.Navigate(new LoginPage(MainWindowVm));
+            }
+            else
+            {
+                if (submissions.Count > 0)
+                {
+                    dgFastest.ItemsSource = submissions;
+                }
+                else
+                {
+                    spFastest.Children.Add(new TextBlock
+                    {
+                        Text = "No accepted solutions",
+                    });
+                }
+                
+            }
         }
 
         /**
@@ -82,6 +110,17 @@ namespace OnlineJudgeWpfApp.Views
                 }
             }
 
+        }
+
+        private void GoToTaggedTasks_tb_Click(object sender, RoutedEventArgs e)
+        {
+            Button button = sender as Button;
+            int id = int.Parse(button.Tag.ToString());
+            NavigationService.Navigate(new TaskListPage(MainWindowVm, id));
+        }
+
+        private void ShowAvailableLangs()
+        {
             ComputerLanguageOperations langOps = new ComputerLanguageOperations();
             List<ComputerLanguage> langs = langOps.GetLangs();
 
@@ -96,13 +135,6 @@ namespace OnlineJudgeWpfApp.Views
             }
             cbLang.ItemsSource = langItems;
             cbLang.SelectedIndex = 0;
-        }
-
-        private void GoToTaggedTasks_tb_Click(object sender, RoutedEventArgs e)
-        {
-            Button button = sender as Button;
-            int id = int.Parse(button.Tag.ToString());
-            NavigationService.Navigate(new TaskListPage(MainWindowVm, id));
         }
 
         private void Submit_Solution(object sender, RoutedEventArgs e)

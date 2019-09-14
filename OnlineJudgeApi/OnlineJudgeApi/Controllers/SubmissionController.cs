@@ -94,11 +94,12 @@ namespace OnlineJudgeApi.Controllers
         // Get fastest accepted submissions for task
         // GET: api/Submission/task/5/best
         [HttpGet("task/{taskId}/best")]
-        public async Task<IActionResult> GetBestSubmissionsByTask(int taskId)
+        public async Task<IActionResult> GetBestSubmissionsOfTask(int taskId)
         {
             var submissions = await _context.Submissions.Include(s => s.User).Include(s => s.ComputerLanguage)
                 .Where(s => s.TaskId == taskId && s.Status.Equals("AC"))
                 .OrderBy(s => s.ExecutionTime)
+                .Take(10)
                 .ToListAsync();
 
             var submissionDtos = mapper.Map<IList<SubmissionDto>>(submissions);

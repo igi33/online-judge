@@ -34,5 +34,24 @@ namespace OnlineJudgeWpfApp.Operations
                 return null;
             }
         }
+
+        public List<Submission> GetFastestSubmissionsOfTask(int taskId)
+        {
+            string endpoint = string.Format("{0}/submission/task/{1}/best", baseUrl, taskId);
+
+            WebClient wc = new WebClient();
+            wc.Headers["Content-Type"] = "application/json";
+
+            try
+            {
+                string response = wc.DownloadString(endpoint);
+                List<Submission> submissions = JsonConvert.DeserializeObject<List<Submission>>(response);
+                return submissions;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
     }
 }

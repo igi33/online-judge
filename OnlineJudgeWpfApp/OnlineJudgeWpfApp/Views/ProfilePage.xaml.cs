@@ -1,8 +1,12 @@
 ﻿using OnlineJudgeWpfApp.Models;
 using OnlineJudgeWpfApp.Operations;
 using OnlineJudgeWpfApp.ViewModels;
+using System;
+using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Navigation;
 
 namespace OnlineJudgeWpfApp.Views
@@ -32,6 +36,42 @@ namespace OnlineJudgeWpfApp.Views
         private void profilePage_Loaded(object sender, RoutedEventArgs e)
         {
             ShowUserDetails();
+            ShowCompletedTasks();
+        }
+
+        private void ShowCompletedTasks()
+        {
+            TaskOperations ops = new TaskOperations();
+            List<Models.Task> completedTasks = ops.GetSolvedTasksByUser(Id);
+            if (completedTasks == null)
+            {
+                MessageBox.Show("Completed tasks request failed");
+                NavigationService.Navigate(new LoginPage(MainWindowVm));
+            }
+            else
+            {
+                foreach (Models.Task t in completedTasks)
+                {
+                    Button b = new Button
+                    {
+                        Content = t.Name,
+                        Tag = t.Id,
+                        Margin = new Thickness(0, 0, 5, 0),
+                        BorderThickness = new Thickness(0, 0, 0, 0),
+                        Background = Brushes.White,
+                        Cursor = Cursors.Hand,
+                    };
+                    b.Click += GoToTask_tb_Click;
+                    spCompletedTasks.Children.Add(b);
+                }
+            }
+        }
+
+        private void GoToTask_tb_Click(object sender, RoutedEventArgs e)
+        {
+            Button button = sender as Button;
+            int id = int.Parse(button.Tag.ToString());
+            NavigationService.Navigate(new TaskDetailsPage(MainWindowVm, id));
         }
 
         /**
@@ -43,7 +83,7 @@ namespace OnlineJudgeWpfApp.Views
             User user = ops.GetUserDetails(Id);
             if (user == null)
             {
-                MessageBox.Show("Session expired");
+                MessageBox.Show("User details request failed");
                 NavigationService.Navigate(new LoginPage(MainWindowVm));
             }
             else

@@ -36,7 +36,7 @@ namespace OnlineJudgeWpfApp.Views
             List<Models.Task> tasks = ops.GetTasks(TagId);
             if (tasks == null)
             {
-                MessageBox.Show("Something happened");
+                MessageBox.Show("Tasks request failed");
             }
             else
             {
@@ -46,6 +46,7 @@ namespace OnlineJudgeWpfApp.Views
                     Tag tag = tagOps.GetTag(TagId);
                     if (tag != null)
                     {
+                        // Add Tag name to heading text
                         tbkHeading.Text += string.Format(" - Tagged {0}", tag.Name);
                     }
                 }

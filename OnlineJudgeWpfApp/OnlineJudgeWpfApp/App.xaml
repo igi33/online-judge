@@ -25,8 +25,7 @@
                         </Setter.Value>
                     </Setter>
                     <Setter Property="Foreground"
-                            Value="{DynamicResource
-                                   {x:Static SystemColors.ControlTextBrushKey}}"/>
+                            Value="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"/>
                     <Setter Property="Background">
                         <Setter.Value>
                             <SolidColorBrush Color="Transparent"/>
@@ -35,13 +34,13 @@
                 </Trigger>
             </Style.Triggers>
         </Style>
-        <Style x:Key="FontStyle" TargetType="{x:Type Control}">
-            <Setter Property="FontSize" Value="14" />
-            <Setter Property="FontFamily" Value="Microsoft Sans Serif" />
+        <Style x:Key="BaseFontStyle">
+            <Setter Property="Control.FontSize" Value="14" />
+            <Setter Property="Control.FontFamily" Value="Microsoft Sans Serif" />
         </Style>
-        <Style x:Key="PageFontStyle" TargetType="{x:Type Page}">
-            <Setter Property="FontSize" Value="14" />
-            <Setter Property="FontFamily" Value="Microsoft Sans Serif" />
+        <Style x:Key="FontStyle" TargetType="{x:Type Control}" BasedOn="{StaticResource BaseFontStyle}">
+        </Style>
+        <Style x:Key="PageFontStyle" TargetType="{x:Type Page}" BasedOn="{StaticResource BaseFontStyle}">
         </Style>
     </Application.Resources>
 </Application>

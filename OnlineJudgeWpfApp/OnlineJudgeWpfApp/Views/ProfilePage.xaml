@@ -5,7 +5,7 @@
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:local="clr-namespace:OnlineJudgeWpfApp.Views"
       mc:Ignorable="d" 
-      d:DesignHeight="350" d:DesignWidth="500"
+      d:DesignHeight="300" d:DesignWidth="500"
       Style="{StaticResource PageFontStyle}"
       Title="ProfilePage"
       Loaded="profilePage_Loaded">
@@ -34,5 +34,7 @@
             <TextBlock Padding="5" x:Name="tbkEmail" Text="" Grid.Row="2" Grid.Column="1" />
             <TextBlock Padding="5" x:Name="tbkTimereg" Text="" Grid.Row="3" Grid.Column="1" />
         </Grid>
+        <TextBlock Text="Completed tasks" FontSize="20" Margin="0,10,0,0" />
+        <StackPanel x:Name="spCompletedTasks" Orientation="Horizontal" Margin="0,10,0,0"></StackPanel>
     </StackPanel>
 </Page>

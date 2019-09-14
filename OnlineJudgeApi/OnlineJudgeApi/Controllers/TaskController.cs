@@ -45,12 +45,42 @@ namespace OnlineJudgeApi.Controllers
 
             if (tag == null)
             {
-                return NotFound();
+                return BadRequest();
             }
 
             var tasks = await _context.Tasks.Where(t => t.TaskTags.Any(tt => tt.TagId == tagId)).Include(t => t.User).ToListAsync();
             var taskDtos = mapper.Map<IList<TaskDto>>(tasks);
             return Ok(taskDtos);
+        }
+
+        // Get list of solved tasks by user
+        // GET: api/Task/solved/user/5
+        [HttpGet("solved/user/{userId}")]
+        public async Task<IActionResult> GetSolvedByUser(int userId)
+        {
+            var user = await _context.Users.FindAsync(userId);
+
+            if (user == null)
+            {
+                return BadRequest();
+            }
+
+            var acceptedSubmissionsByUser = await _context.Submissions.Where(s => s.UserId == userId && s.Status.Equals("AC")).Include(s => s.Task).ToListAsync();
+
+            HashSet<int> taskIds = new HashSet<int>(); // set of solved task IDs
+            List<TaskDto> solvedTaskDtos = new List<TaskDto>();
+
+            foreach (Submission submission in acceptedSubmissionsByUser)
+            {
+                if (!taskIds.Contains(submission.TaskId))
+                {
+                    taskIds.Add(submission.TaskId);
+                    TaskDto dto = mapper.Map<TaskDto>(submission.Task);
+                    solvedTaskDtos.Add(dto);
+                }
+            }
+
+            return Ok(solvedTaskDtos);
         }
 
         // GET: api/Task/5

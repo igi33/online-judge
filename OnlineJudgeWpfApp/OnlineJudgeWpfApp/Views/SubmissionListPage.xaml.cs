@@ -43,7 +43,7 @@ namespace OnlineJudgeWpfApp.Views
             List<Submission> submissions = ops.GetSubmissions();
             if (submissions == null)
             {
-                MessageBox.Show("Something happened");
+                MessageBox.Show("Submissions request failed");
             }
             else
             {

@@ -42,7 +42,6 @@ namespace OnlineJudgeWpfApp.Views
                 Globals.LoggedInUser = user;
                 MainWindowVm.LoggedIn = true;
                 MainWindowVm.Username = user.Username;
-                //MessageBox.Show("Login successful");
                 NavigationService.Navigate(new ProfilePage(MainWindowVm, user.Id));
             }
         }

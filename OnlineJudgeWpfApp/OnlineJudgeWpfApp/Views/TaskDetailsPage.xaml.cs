@@ -54,7 +54,7 @@ namespace OnlineJudgeWpfApp.Views
             Models.Task task = ops.GetTaskDetails(Id);
             if (task == null)
             {
-                MessageBox.Show("Session expired");
+                MessageBox.Show("Task details request failed");
                 NavigationService.Navigate(new LoginPage(MainWindowVm));
             }
             else

@@ -43,7 +43,7 @@ namespace OnlineJudgeWpfApp.Views
             List<Tag> tags = ops.GetTags();
             if (tags == null)
             {
-                MessageBox.Show("Something happened");
+                MessageBox.Show("Tags request failed");
             }
             else
             {

@@ -36,6 +36,25 @@ namespace OnlineJudgeWpfApp.Operations
             }
         }
 
+        public List<Models.Task> GetSolvedTasksByUser(int userId)
+        {
+            string endpoint = string.Format("{0}/task/solved/user/{1}", baseUrl, userId);
+
+            WebClient wc = new WebClient();
+            wc.Headers["Content-Type"] = "application/json";
+
+            try
+            {
+                string response = wc.DownloadString(endpoint);
+                List<Models.Task> tasks = JsonConvert.DeserializeObject<List<Models.Task>>(response);
+                return tasks;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
         public Models.Task GetTaskDetails(int id)
         {
             string endpoint = string.Format("{0}/task/{1}", baseUrl, id);

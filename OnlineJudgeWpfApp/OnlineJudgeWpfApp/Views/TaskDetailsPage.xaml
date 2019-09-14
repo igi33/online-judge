@@ -49,7 +49,7 @@
         <StackPanel Visibility="{Binding LoggedIn, Converter={StaticResource BoolToVis}}" Margin="0,15,0,0">
             <TextBlock Text="Submit Solution" FontSize="20" />
             <ComboBox x:Name="cbLang" Margin="0,10,0,0"></ComboBox>
-            <TextBox Padding="5" FontFamily="Courier New" x:Name="sourceCode" Margin="0,10,0,0" Height="300"></TextBox>
+            <TextBox x:Name="sourceCode" Padding="5" FontFamily="Courier New" Margin="0,10,0,0" Height="300"></TextBox>
             <Button Margin="0,10,0,0" Content="Submit" Click="Submit_Solution" Width="150" />
         </StackPanel>
     </StackPanel>

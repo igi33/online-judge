@@ -47,19 +47,30 @@ namespace OnlineJudgeWpfApp.Views
             }
             else
             {
-                // Add tag buttons to stackpanel
-                foreach (Tag t in tags)
+                if (tags.Count > 0)
                 {
-                    Button b = new Button
+                    // Add tag buttons to stackpanel
+                    foreach (Tag t in tags)
                     {
-                        Content = t.Name,
-                        Tag = t.Id,
-                        Padding = new Thickness(5, 5, 5, 5),
-                        Margin = new Thickness(0, 0, 5, 0),
-                        Height = 40
-                    };
-                    b.Click += GoToTaggedTasks_tb_Click;
-                    spTagList.Children.Add(b);
+                        Button b = new Button
+                        {
+                            Content = t.Name,
+                            Tag = t.Id,
+                            Padding = new Thickness(5),
+                            Margin = new Thickness(0, 0, 5, 0),
+                            Cursor = Cursors.Hand,
+                        };
+                        b.Click += GoToTaggedTasks_tb_Click;
+                        spTagList.Children.Add(b);
+                    }
+                }
+                else
+                {
+                    spTagList.Children.Add(new TextBlock
+                    {
+                        Text = "There are currently no tags",
+                        Padding = new Thickness(5),
+                    });
                 }
             }
         }
@@ -67,7 +78,7 @@ namespace OnlineJudgeWpfApp.Views
         private void GoToTaggedTasks_tb_Click(object sender, RoutedEventArgs e)
         {
             Button button = sender as Button;
-            int id = int.Parse(button.Tag.ToString());
+            int id = (int)button.Tag;
             NavigationService.Navigate(new TaskListPage(MainWindowVm, id));
         }
     }

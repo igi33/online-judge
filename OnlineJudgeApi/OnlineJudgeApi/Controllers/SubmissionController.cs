@@ -149,7 +149,8 @@ namespace OnlineJudgeApi.Controllers
                 ExecutionTime = 0,
             };
 
-            string sourceFileName = string.Format("{0}.{1}", task.Name, lang.Extension);
+            string taskIdentifierInFileName = task.Id.ToString();
+            string sourceFileName = string.Format("{0}.{1}", taskIdentifierInFileName, lang.Extension);
 
             // Create file from source code
             System.IO.File.WriteAllText(sourceFileName, submissionDto.SourceCode);
@@ -159,12 +160,12 @@ namespace OnlineJudgeApi.Controllers
             {
                 p.StartInfo.EnvironmentVariables["CPATH"] = lang.CompilerPath;
                 p.StartInfo.FileName = lang.CompilerFileName;
-                p.StartInfo.Arguments = string.Format(lang.CompileCmd, task.Name);
+                p.StartInfo.Arguments = string.Format(lang.CompileCmd, taskIdentifierInFileName);
                 p.StartInfo.CreateNoWindow = true;
                 p.StartInfo.UseShellExecute = false;
                 p.EnableRaisingEvents = true;
                 p.StartInfo.RedirectStandardError = true;
-                p.Exited += (sender, e) => GradeSolution(sender, e, lang, task, submission, submissionDto);
+                p.Exited += (sender, e) => GradeSolution(sender, e, lang, task, submission, submissionDto, taskIdentifierInFileName);
                 p.Start();
                 p.WaitForExit();
             }
@@ -181,7 +182,7 @@ namespace OnlineJudgeApi.Controllers
 
             // Delete created task files
             System.IO.File.Delete(sourceFileName);
-            System.IO.File.Delete(string.Format(lang.ExecuteCmd, task.Name));
+            System.IO.File.Delete(string.Format(lang.ExecuteCmd, taskIdentifierInFileName));
 
             // Prepare response DTO
             SubmissionDto responseDto = mapper.Map<SubmissionDto>(submission);
@@ -193,7 +194,7 @@ namespace OnlineJudgeApi.Controllers
             return CreatedAtAction("GetSubmission", new { id = submission.Id }, responseDto);
         }
 
-        private void GradeSolution(object sender, EventArgs e, ComputerLanguage lang, Entities.Task task, Submission submission, SubmissionDto submissionDto)
+        private void GradeSolution(object sender, EventArgs e, ComputerLanguage lang, Entities.Task task, Submission submission, SubmissionDto submissionDto, string taskIdentifierInFileName)
         {
             Process p = sender as Process;
             if (p.ExitCode != 0)
@@ -215,7 +216,7 @@ namespace OnlineJudgeApi.Controllers
                 {
                     using (Process q = new Process())
                     {
-                        q.StartInfo.FileName = string.Format(lang.ExecuteCmd, task.Name);
+                        q.StartInfo.FileName = string.Format(lang.ExecuteCmd, taskIdentifierInFileName);
                         q.StartInfo.RedirectStandardInput = true;
                         q.StartInfo.RedirectStandardOutput = true;
                         q.StartInfo.RedirectStandardError = true;
@@ -260,7 +261,7 @@ namespace OnlineJudgeApi.Controllers
                                 string output = q.StandardOutput.ReadToEnd();
 
                                 // Check if outputs match
-                                if (!output.TrimEnd().Equals(tc.Output.TrimEnd()))
+                                if (!output.Trim().Equals(tc.Output.Trim()))
                                 {
                                     // No match, set status as rejected
                                     submission.Status = "RJ";

@@ -48,17 +48,30 @@
 
                 <TextBlock Padding="5" x:Name="tbkId" Text="" Grid.Row="0" Grid.Column="1" />
                 <TextBlock Padding="5" x:Name="tbkName" Text="" Grid.Row="1" Grid.Column="1" />
-                <TextBlock TextWrapping="Wrap" Padding="5" x:Name="tbkDesc" Text="" Grid.Row="2" Grid.Column="1" />
+                <TextBlock Padding="5" x:Name="tbkDesc" Text="" TextWrapping="Wrap" TextAlignment="Justify" Grid.Row="2" Grid.Column="1" />
                 <TextBlock Padding="5" x:Name="tbkTimelimit" Text="" Grid.Row="3" Grid.Column="1" />
                 <TextBlock Padding="5" x:Name="tbkDatetime" Text="" Grid.Row="4" Grid.Column="1" />
-                <TextBlock Padding="5" x:Name="tbkSubmitter" Text="" Grid.Row="5" Grid.Column="1" />
-                <TextBlock Padding="5" x:Name="tbkOrigin" Text="" Grid.Row="6" Grid.Column="1" />
-                <StackPanel Orientation="Horizontal" x:Name="spTags" Grid.Row="7" Grid.Column="1"></StackPanel>
+                <Button Padding="5" x:Name="btnSubmitter" Content="" Grid.Row="5" Grid.Column="1"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        HorizontalAlignment="Left"
+                        MinWidth="30"
+                        Cursor="Hand"
+                        Click="Username_Click" />
+                <TextBlock Padding="5" x:Name="tbkOrigin" Grid.Row="6" Grid.Column="1" />
+                <StackPanel x:Name="spTags" Orientation="Horizontal" Grid.Row="7" Grid.Column="1"></StackPanel>
             </Grid>
             <StackPanel Visibility="{Binding LoggedIn, Converter={StaticResource BoolToVis}}" Margin="0,15,0,0">
                 <TextBlock Text="Submit Solution" FontSize="20" />
                 <ComboBox x:Name="cbLang" Margin="0,10,0,0"></ComboBox>
-                <TextBox x:Name="sourceCode" Padding="5" FontFamily="Courier New" Margin="0,10,0,0" Height="300"></TextBox>
+                <TextBox x:Name="tbSourceCode"
+                         TextWrapping="Wrap"
+                         AcceptsReturn="True"
+                         AcceptsTab="True"
+                         Padding="5"
+                         FontFamily="Courier New"
+                         Margin="0,10,0,0"
+                         Height="300"></TextBox>
                 <Button Margin="0,10,0,0" Content="Submit" Click="Submit_Solution" Width="150" />
             </StackPanel>
         </StackPanel>
@@ -75,7 +88,20 @@
                   BorderThickness="0"
                   CellStyle="{StaticResource DataGridCellStyle}">
                     <DataGrid.Columns>
-                        <DataGridTextColumn ElementStyle="{StaticResource CellElementStyle}" Header="Username" Binding="{Binding User.Username}" />
+                        <DataGridTemplateColumn Header="Username">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Button Tag="{Binding User.Id}"
+                                            Cursor="Hand"
+                                            Padding="5"
+                                            HorizontalAlignment="Left"
+                                            BorderThickness="0"
+                                            Background="Transparent"
+                                            Click="Username_Click"
+                                            Content="{Binding User.Username}" />
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
                         <DataGridTextColumn ElementStyle="{StaticResource CellElementStyle}" Header="Time" Binding="{Binding ExecutionTime, StringFormat={}{0} ms}" />
                     </DataGrid.Columns>
                 </DataGrid>

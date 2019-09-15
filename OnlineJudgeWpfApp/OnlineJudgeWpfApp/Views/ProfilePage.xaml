@@ -34,7 +34,7 @@
             <TextBlock Padding="5" x:Name="tbkEmail" Text="" Grid.Row="2" Grid.Column="1" />
             <TextBlock Padding="5" x:Name="tbkTimereg" Text="" Grid.Row="3" Grid.Column="1" />
         </Grid>
-        <TextBlock Text="Completed tasks" FontSize="20" Margin="0,10,0,0" />
+        <TextBlock Text="Completed tasks" FontSize="20" Margin="0,15,0,0" />
         <StackPanel x:Name="spCompletedTasks" Orientation="Horizontal" Margin="0,10,0,0"></StackPanel>
     </StackPanel>
 </Page>

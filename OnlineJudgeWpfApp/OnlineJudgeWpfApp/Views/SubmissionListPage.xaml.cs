@@ -25,11 +25,14 @@ namespace OnlineJudgeWpfApp.Views
     {
         public MainWindowViewModel MainWindowVm { get; set; }
 
-        public SubmissionListPage(MainWindowViewModel mainWindowVm)
+        public int SelectedId { get; set; }
+
+        public SubmissionListPage(MainWindowViewModel mainWindowVm, int selectedId = 0)
         {
             InitializeComponent();
 
             MainWindowVm = mainWindowVm;
+            SelectedId = selectedId;
         }
 
         private void submissionListPage_Loaded(object sender, RoutedEventArgs e)
@@ -47,6 +50,11 @@ namespace OnlineJudgeWpfApp.Views
             }
             else
             {
+                int index = submissions.FindIndex(s => s.Id == SelectedId);
+                if (index >= 0)
+                {
+                    submissions[index].Selected = true;
+                }
                 dgSubmissions.ItemsSource = submissions;
             }
         }

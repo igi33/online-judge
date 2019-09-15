@@ -53,5 +53,36 @@ namespace OnlineJudgeWpfApp.Operations
                 return null;
             }
         }
+
+        public Submission PostSubmission(string sourceCode, int langId, int taskId)
+        {
+            if (Globals.LoggedInUser == null)
+            {
+                return null;
+            }
+
+            string endpoint = string.Format("{0}/submission/task/{1}", baseUrl, taskId);
+            string method = "POST";
+            string json = JsonConvert.SerializeObject(new
+            {
+                sourcecode = sourceCode,
+                langid = langId,
+            });
+
+            WebClient wc = new WebClient();
+            wc.Headers["Content-Type"] = "application/json";
+            wc.Headers["Authorization"] = string.Format("Bearer {0}", Globals.LoggedInUser.Token);
+
+            try
+            {
+                string response = wc.UploadString(endpoint, method, json);
+                Submission submission = JsonConvert.DeserializeObject<Submission>(response);
+                return submission;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
     }
 }

@@ -50,20 +50,32 @@ namespace OnlineJudgeWpfApp.Views
             }
             else
             {
-                foreach (Models.Task t in completedTasks)
+                if (completedTasks.Count > 0)
                 {
-                    Button b = new Button
+                    foreach (Models.Task t in completedTasks)
                     {
-                        Content = t.Name,
-                        Tag = t.Id,
-                        Margin = new Thickness(0, 0, 5, 0),
-                        BorderThickness = new Thickness(0, 0, 0, 0),
-                        Background = Brushes.White,
-                        Cursor = Cursors.Hand,
-                    };
-                    b.Click += GoToTask_tb_Click;
-                    spCompletedTasks.Children.Add(b);
+                        Button b = new Button
+                        {
+                            Content = t.Name,
+                            Tag = t.Id,
+                            Margin = new Thickness(0, 0, 5, 0),
+                            Padding = new Thickness(5),
+                            BorderThickness = new Thickness(0),
+                            Background = Brushes.Transparent,
+                            Cursor = Cursors.Hand,
+                        };
+                        b.Click += GoToTask_tb_Click;
+                        spCompletedTasks.Children.Add(b);
+                    }
                 }
+                else
+                {
+                    spCompletedTasks.Children.Add(new TextBlock
+                    {
+                        Text = "No completed tasks",
+                    });
+                }
+
             }
         }
 

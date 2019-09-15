@@ -9,6 +9,15 @@
       Title="SubmissionListPage"
       Style="{StaticResource PageFontStyle}"
       Loaded="submissionListPage_Loaded">
+    <Page.Resources>
+        <Style TargetType="DataGridRow">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Selected}" Value="True">
+                    <Setter Property="Background" Value="LightBlue" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </Page.Resources>
 
     <StackPanel Margin="20,0,20,20">
         <TextBlock x:Name="tbkHeading" Text="Submission List" FontSize="25" />
@@ -21,17 +30,31 @@
                   CellStyle="{StaticResource DataGridCellStyle}">
             <DataGrid.Columns>
                 <DataGridTextColumn ElementStyle="{StaticResource CellElementStyle}" Header="ID" Binding="{Binding Id}" />
-                <DataGridTemplateColumn Header="Task Name">
+                <DataGridTemplateColumn Header="Task Name" SortMemberPath="Task.Name">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <Button Tag="{Binding Task.Id}" Cursor="Hand" BorderThickness="0" Background="White" Click="goToTaskPage" Content="{Binding Task.Name}" />
+                            <Button Tag="{Binding Task.Id}"
+                                    Cursor="Hand"
+                                    Padding="5"
+                                    BorderThickness="0"
+                                    HorizontalAlignment="Left"
+                                    Background="Transparent"
+                                    Click="goToTaskPage"
+                                    Content="{Binding Task.Name}" />
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Submitted by">
+                <DataGridTemplateColumn Header="Submitted by" SortMemberPath="User.Username">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <Button Tag="{Binding User.Id}" Cursor="Hand" BorderThickness="0" Background="White" Click="goToProfilePage" Content="{Binding User.Username}" />
+                            <Button Tag="{Binding User.Id}"
+                                    Cursor="Hand"
+                                    Padding="5"
+                                    BorderThickness="0"
+                                    HorizontalAlignment="Left"
+                                    Background="Transparent"
+                                    Click="goToProfilePage"
+                                    Content="{Binding User.Username}" />
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>

@@ -27,5 +27,7 @@ namespace OnlineJudgeWpfApp.Models
         public Task Task { get; set; }
 
         public ComputerLanguage ComputerLanguage { get; set; }
+
+        public bool Selected { get; set; } // Used to color selected row in DataGrid
     }
 }

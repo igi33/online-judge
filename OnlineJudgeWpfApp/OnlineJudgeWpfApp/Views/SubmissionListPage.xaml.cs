@@ -1,20 +1,10 @@
 ﻿using OnlineJudgeWpfApp.Models;
 using OnlineJudgeWpfApp.Operations;
 using OnlineJudgeWpfApp.ViewModels;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace OnlineJudgeWpfApp.Views
 {
@@ -25,7 +15,7 @@ namespace OnlineJudgeWpfApp.Views
     {
         public MainWindowViewModel MainWindowVm { get; set; }
 
-        public int SelectedId { get; set; }
+        public int SelectedId { get; set; } // Row with SelectedId will be highlighted
 
         public SubmissionListPage(MainWindowViewModel mainWindowVm, int selectedId = 0)
         {
@@ -62,14 +52,14 @@ namespace OnlineJudgeWpfApp.Views
         public void goToTaskPage(object sender, RoutedEventArgs e)
         {
             Button button = sender as Button;
-            int id = int.Parse(button.Tag.ToString());
+            int id = (int)button.Tag;
             NavigationService.Navigate(new TaskDetailsPage(MainWindowVm, id));
         }
 
         public void goToProfilePage(object sender, RoutedEventArgs e)
         {
             Button button = sender as Button;
-            int id = int.Parse(button.Tag.ToString());
+            int id = (int)button.Tag;
             NavigationService.Navigate(new ProfilePage(MainWindowVm, id));
         }
     }

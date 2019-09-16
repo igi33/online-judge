@@ -67,5 +67,10 @@ namespace OnlineJudgeWpfApp.Views
             int id = int.Parse(button.Tag.ToString());
             NavigationService.Navigate(new ProfilePage(MainWindowVm, id));
         }
+
+        private void Create_Task_Nav_Click(object sender, RoutedEventArgs e)
+        {
+            NavigationService.Navigate(new TaskFormPage(MainWindowVm));
+        }
     }
 }

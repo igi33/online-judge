@@ -5,14 +5,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace OnlineJudgeWpfApp.Operations
 {
     class TaskOperations : ApiOperations
     {
         // Get all tasks (tagId == 0) or belonging to tag with some ID
-        public List<Models.Task> GetTasks(int tagId = 0)
+        public List<Task> GetTasks(int tagId = 0)
         {
             string endpoint = tagId == 0 ? string.Format("{0}/task", baseUrl) : string.Format("{0}/task/tag/{1}", baseUrl, tagId);
 
@@ -27,7 +26,7 @@ namespace OnlineJudgeWpfApp.Operations
             try
             {
                 string response = wc.DownloadString(endpoint);
-                List<Models.Task> tasks = JsonConvert.DeserializeObject<List<Models.Task>>(response);
+                List<Task> tasks = JsonConvert.DeserializeObject<List<Task>>(response);
                 return tasks;
             }
             catch (Exception)
@@ -36,7 +35,7 @@ namespace OnlineJudgeWpfApp.Operations
             }
         }
 
-        public List<Models.Task> GetSolvedTasksByUser(int userId)
+        public List<Task> GetSolvedTasksByUser(int userId)
         {
             string endpoint = string.Format("{0}/task/solved/user/{1}", baseUrl, userId);
 
@@ -46,7 +45,7 @@ namespace OnlineJudgeWpfApp.Operations
             try
             {
                 string response = wc.DownloadString(endpoint);
-                List<Models.Task> tasks = JsonConvert.DeserializeObject<List<Models.Task>>(response);
+                List<Task> tasks = JsonConvert.DeserializeObject<List<Task>>(response);
                 return tasks;
             }
             catch (Exception)
@@ -55,7 +54,7 @@ namespace OnlineJudgeWpfApp.Operations
             }
         }
 
-        public Models.Task GetTaskDetails(int id)
+        public Task GetTaskDetails(int id)
         {
             string endpoint = string.Format("{0}/task/{1}", baseUrl, id);
 
@@ -70,12 +69,64 @@ namespace OnlineJudgeWpfApp.Operations
             try
             {
                 string response = wc.DownloadString(endpoint);
-                Models.Task task = JsonConvert.DeserializeObject<Models.Task>(response);
+                Task task = JsonConvert.DeserializeObject<Task>(response);
                 return task;
             }
             catch (Exception)
             {
                 return null;
+            }
+        }
+
+        public Task PostTask(Task task)
+        {
+            if (Globals.LoggedInUser == null)
+            {
+                return null;
+            }
+
+            string endpoint = string.Format("{0}/task/", baseUrl);
+            string method = "POST";
+            string json = JsonConvert.SerializeObject(task);
+
+            WebClient wc = new WebClient();
+            wc.Headers["Content-Type"] = "application/json";
+            wc.Headers["Authorization"] = string.Format("Bearer {0}", Globals.LoggedInUser.Token);
+
+            try
+            {
+                string response = wc.UploadString(endpoint, method, json);
+                return JsonConvert.DeserializeObject<Task>(response);
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        public bool PutTask(Task task, int id)
+        {
+            if (Globals.LoggedInUser == null)
+            {
+                return false;
+            }
+
+            string endpoint = string.Format("{0}/task/{1}", baseUrl, id);
+            string method = "PUT";
+            string json = JsonConvert.SerializeObject(task);
+
+            WebClient wc = new WebClient();
+            wc.Headers["Content-Type"] = "application/json";
+            wc.Headers["Authorization"] = string.Format("Bearer {0}", Globals.LoggedInUser.Token);
+
+            try
+            {
+                string response = wc.UploadString(endpoint, method, json);
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
             }
         }
     }

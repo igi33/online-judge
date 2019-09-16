@@ -4,18 +4,11 @@ using OnlineJudgeWpfApp.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace OnlineJudgeWpfApp.Views
 {
@@ -129,7 +122,8 @@ namespace OnlineJudgeWpfApp.Views
                             Content = t.Name,
                             Tag = t.Id,
                             Padding = new Thickness(5, 5, 5, 5),
-                            Margin = new Thickness(0, 0, 5, 0)
+                            Margin = new Thickness(0, 0, 5, 0),
+                            Cursor = Cursors.Hand,
                         };
                         b.Click += GoToTaggedTasks_tb_Click;
                         spTags.Children.Add(b);
@@ -191,7 +185,7 @@ namespace OnlineJudgeWpfApp.Views
         private void Submit_Solution(object sender, RoutedEventArgs e)
         {
             ComboBoxItem typeItem = (ComboBoxItem)cbLang.SelectedItem;
-            int langId = int.Parse(typeItem.Tag.ToString());
+            int langId = (int)typeItem.Tag;
             string sourceCode = tbSourceCode.Text;
 
             SubmissionOperations ops = new SubmissionOperations();
@@ -205,6 +199,11 @@ namespace OnlineJudgeWpfApp.Views
             {
                 NavigationService.Navigate(new SubmissionListPage(MainWindowVm, submission.Id));
             }
+        }
+
+        private void Btn_Edit_Click(object sender, RoutedEventArgs e)
+        {
+            NavigationService.Navigate(new TaskFormPage(MainWindowVm, Id));
         }
     }
 }

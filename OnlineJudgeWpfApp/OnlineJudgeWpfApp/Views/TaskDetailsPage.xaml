@@ -22,7 +22,7 @@
         <StackPanel Grid.Row="0" Grid.Column="0" HorizontalAlignment="Left">
             <DockPanel>
                 <TextBlock Text="Task Details" FontSize="25" />
-                <Button Content="Edit Task" Padding="10,5,10,5" Cursor="Hand" HorizontalAlignment="Right" Click="Btn_Edit_Click" />
+                <Button Visibility="Collapsed" x:Name="btnEditTask" Content="Edit Task" Padding="10,5,10,5" Cursor="Hand" HorizontalAlignment="Right" Click="Btn_Edit_Click" />
             </DockPanel>
             <Grid Margin="0,10,0,0">
                 <Grid.RowDefinitions>

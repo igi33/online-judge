@@ -13,7 +13,7 @@
     <StackPanel Margin="20,0,20,20">
         <DockPanel>
             <TextBlock x:Name="tbkHeading" Text="Task List" FontSize="25" />
-            <Button Content="Create Task" Padding="10,5,10,5" Cursor="Hand" HorizontalAlignment="Right" Click="Create_Task_Nav_Click" />
+            <Button Visibility="{Binding LoggedIn, Converter={StaticResource BoolToVis}}" Content="Create Task" Padding="10,5,10,5" Cursor="Hand" HorizontalAlignment="Right" Click="Create_Task_Nav_Click" />
         </DockPanel>
         
         <DataGrid Name="dgTasks" Margin="0,15,0,0"

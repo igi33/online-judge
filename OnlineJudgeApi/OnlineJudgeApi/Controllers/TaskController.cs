@@ -301,6 +301,9 @@ namespace OnlineJudgeApi.Controllers
                 });
             }
 
+            // Save changes so that TaskTags are really added
+            await _context.SaveChangesAsync();
+
             // Remove unused Tags, check only old ones
             foreach (int tId in oldTagIds)
             {

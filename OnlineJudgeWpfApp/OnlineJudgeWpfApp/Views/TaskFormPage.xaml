@@ -84,7 +84,7 @@
 
                 </Grid>
             </StackPanel>
-            <Button Margin="5" Padding="5" Grid.Row="6" Grid.Column="1" x:Name="btnSubmit" Width="100" Content="Submit" Click="BtnSubmit_Click" />
+            <Button Margin="5" Padding="5" Grid.Row="6" Grid.Column="1" x:Name="btnSubmit" Cursor="Hand" Width="100" Content="Submit" Click="BtnSubmit_Click" />
         </Grid>
     </StackPanel>
 </Page>

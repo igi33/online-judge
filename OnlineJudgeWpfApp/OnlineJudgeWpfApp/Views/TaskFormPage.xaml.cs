@@ -7,6 +7,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Linq;
 using OnlineJudgeWpfApp.Operations;
+using System;
 
 namespace OnlineJudgeWpfApp.Views
 {
@@ -43,6 +44,36 @@ namespace OnlineJudgeWpfApp.Views
             {
                 tbkHeading.Text += " - Edit Task";
                 btnSubmit.Content = "Edit Task";
+
+                TaskOperations ops = new TaskOperations();
+                Task task = ops.GetTaskDetails(Id);
+                if (task == null)
+                {
+                    MessageBox.Show("Task edit details request failed");
+                    NavigationService.Navigate(new LoginPage(MainWindowVm));
+                }
+                else
+                {
+                    // Populate TextBoxes
+                    tbName.Text = task.Name;
+                    tbDesc.Text = task.Description;
+                    tbTimelimit.Text = task.TimeLimit.ToString();
+                    tbOrigin.Text = task.Origin;
+                    tbTags.Text = string.Join(", ", task.Tags.Select(t => t.Name));
+
+                    // Populate Test Cases
+                    tbTcNum.Text = task.TestCases.Count.ToString();
+
+                    int numRows = gridTcs.RowDefinitions.Count;
+                    for (int i = 1; i < numRows; ++i) // Skip first row of Grid
+                    {
+                        TextBox tbInput = (TextBox)gridTcs.Children.Cast<UIElement>().First(el => Grid.GetRow(el) == i && Grid.GetColumn(el) == 0);
+                        tbInput.Text = task.TestCases.ElementAt(i - 1).Input;
+
+                        TextBox tbOutput = (TextBox)gridTcs.Children.Cast<UIElement>().First(el => Grid.GetRow(el) == i && Grid.GetColumn(el) == 1);
+                        tbOutput.Text = task.TestCases.ElementAt(i - 1).Output;
+                    }
+                }
             }
         }
 

@@ -81,6 +81,13 @@ namespace OnlineJudgeWpfApp.Views
             }
             else
             {
+                // Show Edit Task button if needed
+                bool taskBelongsToCurrentUser = Globals.LoggedInUser != null && task.User.Id == Globals.LoggedInUser.Id;
+                if (taskBelongsToCurrentUser)
+                {
+                    btnEditTask.Visibility = Visibility.Visible;
+                }
+
                 tbkId.Text = task.Id.ToString();
                 tbkName.Text = task.Name;
                 tbkDesc.Text = task.Description;

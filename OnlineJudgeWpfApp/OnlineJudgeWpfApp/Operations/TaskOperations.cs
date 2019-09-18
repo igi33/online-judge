@@ -70,6 +70,10 @@ namespace OnlineJudgeWpfApp.Operations
             {
                 string response = wc.DownloadString(endpoint);
                 Task task = JsonConvert.DeserializeObject<Task>(response);
+                
+                // Convert to UTF8
+                task.Description = Encoding.UTF8.GetString(Encoding.Default.GetBytes(task.Description));
+
                 return task;
             }
             catch (Exception)
@@ -84,6 +88,9 @@ namespace OnlineJudgeWpfApp.Operations
             {
                 return null;
             }
+
+            // Convert to UTF8
+            task.Description = Encoding.UTF8.GetString(Encoding.Default.GetBytes(task.Description));
 
             string endpoint = string.Format("{0}/task/", baseUrl);
             string method = "POST";
@@ -110,6 +117,9 @@ namespace OnlineJudgeWpfApp.Operations
             {
                 return false;
             }
+
+            // Convert to UTF8
+            task.Description = Encoding.UTF8.GetString(Encoding.Default.GetBytes(task.Description));
 
             string endpoint = string.Format("{0}/task/{1}", baseUrl, id);
             string method = "PUT";

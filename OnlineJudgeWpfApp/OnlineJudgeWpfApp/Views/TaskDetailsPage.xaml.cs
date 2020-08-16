@@ -92,11 +92,12 @@ namespace OnlineJudgeWpfApp.Views
                 tbkId.Text = task.Id.ToString();
                 tbkName.Text = task.Name;
                 tbkDesc.Text = task.Description;
-                tbkTimelimit.Text = task.TimeLimit.ToString();
+                tbkTimelimit.Text = ((double)task.TimeLimit / 1000.0).ToString();
+                tbkMemorylimit.Text = ((double)task.MemoryLimit / 1024.0 / 1024.0).ToString();
                 tbkDatetime.Text = task.TimeSubmitted.ToString();
 
                 btnSubmitter.Content = task.User.Username;
-                btnSubmitter.Tag = task.Id;
+                btnSubmitter.Tag = task.User.Id;
 
                 // Check if task.Origin is a valid HTTP or HTTPS URL, or just text
                 bool originIsValidLink = Uri.TryCreate(task.Origin, UriKind.Absolute, out Uri uriResult)
@@ -203,9 +204,17 @@ namespace OnlineJudgeWpfApp.Views
                 MessageBox.Show("Send submission request failed");
                 NavigationService.Navigate(new LoginPage(MainWindowVm));
             }
+            else if (submission.Id == -1)
+            {
+                MessageBox.Show("Send submission request failed: " + submission.Message);
+            }
             else
             {
                 NavigationService.Navigate(new SubmissionListPage(MainWindowVm, submission.Id));
+                if (!string.IsNullOrEmpty(submission.Message))
+                {
+                    MessageBox.Show("Submission msg: " + submission.Message);
+                }
             }
         }
 

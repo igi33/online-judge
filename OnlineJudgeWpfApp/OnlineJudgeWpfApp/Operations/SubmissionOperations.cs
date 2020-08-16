@@ -79,9 +79,9 @@ namespace OnlineJudgeWpfApp.Operations
                 Submission submission = JsonConvert.DeserializeObject<Submission>(response);
                 return submission;
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                return null;
+                return new Submission { Message = e.Message, Id = -1 };
             }
         }
     }

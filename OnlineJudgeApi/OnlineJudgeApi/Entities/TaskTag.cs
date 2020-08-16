@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace OnlineJudgeApi.Entities
 {
+    [Table("tasktags")]
     public class TaskTag
     {
         public int TaskId { get; set; }

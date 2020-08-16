@@ -42,7 +42,7 @@ namespace OnlineJudgeApi
             services.AddDbContextPool<DataContext>(options =>
                 options.UseMySql(appSettings.ConnectionString, mySqlOptions =>
                 {
-                    mySqlOptions.ServerVersion(new Version(8, 0, 11), ServerType.MySql); // replace with your Server Version and Type
+                    mySqlOptions.ServerVersion(new Version(5, 7, 31), ServerType.MySql); // replace with your Server Version and Type
                 }
             ));
 

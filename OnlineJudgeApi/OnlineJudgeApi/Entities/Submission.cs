@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace OnlineJudgeApi.Entities
 {
+    [Table("submissions")]
     public class Submission
     {
         public int Id { get; set; }

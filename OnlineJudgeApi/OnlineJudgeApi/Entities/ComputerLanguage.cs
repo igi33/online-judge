@@ -1,5 +1,8 @@
-﻿namespace OnlineJudgeApi.Entities
+﻿using System.ComponentModel.DataAnnotations.Schema;
+
+namespace OnlineJudgeApi.Entities
 {
+    [Table("computerlanguages")]
     public class ComputerLanguage
     {
         public int Id { get; set; }

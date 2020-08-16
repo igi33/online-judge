@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace OnlineJudgeApi.Entities
 {
+    [Table("tasks")]
     public class Task
     {
         public Task()

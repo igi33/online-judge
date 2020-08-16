@@ -34,35 +34,38 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="100" />
+                    <ColumnDefinition Width="150" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
 
                 <TextBlock Padding="5" Text="ID:" Grid.Row="0" Grid.Column="0" />
                 <TextBlock Padding="5" Text="Name:" Grid.Row="1" Grid.Column="0" />
                 <TextBlock Padding="5" Text="Description:" Grid.Row="2" Grid.Column="0" />
-                <TextBlock Padding="5" Text="Time Limit (ms):" Grid.Row="3" Grid.Column="0" />
-                <TextBlock Padding="5" Text="Submitted on:" Grid.Row="4" Grid.Column="0" />
-                <TextBlock Padding="5" Text="Submitted by:" Grid.Row="5" Grid.Column="0" />
-                <TextBlock Padding="5" Text="Origin:" Grid.Row="6" Grid.Column="0" />
-                <TextBlock Padding="5" Text="Tags:" Grid.Row="7" Grid.Column="0" />
+                <TextBlock Padding="5" Text="Time Limit (s):" Grid.Row="3" Grid.Column="0" />
+                <TextBlock Padding="5" Text="Memory Limit (MiB):" Grid.Row="4" Grid.Column="0" />
+                <TextBlock Padding="5" Text="Submitted on:" Grid.Row="5" Grid.Column="0" />
+                <TextBlock Padding="5" Text="Submitted by:" Grid.Row="6" Grid.Column="0" />
+                <TextBlock Padding="5" Text="Origin:" Grid.Row="7" Grid.Column="0" />
+                <TextBlock Padding="5" Text="Tags:" Grid.Row="8" Grid.Column="0" />
 
                 <TextBlock Padding="5" x:Name="tbkId" Text="" Grid.Row="0" Grid.Column="1" />
                 <TextBlock Padding="5" x:Name="tbkName" Text="" Grid.Row="1" Grid.Column="1" />
                 <TextBlock Padding="5" x:Name="tbkDesc" Text="" TextWrapping="Wrap" TextAlignment="Justify" Grid.Row="2" Grid.Column="1" />
                 <TextBlock Padding="5" x:Name="tbkTimelimit" Text="" Grid.Row="3" Grid.Column="1" />
-                <TextBlock Padding="5" x:Name="tbkDatetime" Text="" Grid.Row="4" Grid.Column="1" />
-                <Button Padding="5" x:Name="btnSubmitter" Content="" Grid.Row="5" Grid.Column="1"
+                <TextBlock Padding="5" x:Name="tbkMemorylimit" Text="" Grid.Row="4" Grid.Column="1" />
+                <TextBlock Padding="5" x:Name="tbkDatetime" Text="" Grid.Row="5" Grid.Column="1" />
+                <Button Padding="5" x:Name="btnSubmitter" Content="" Grid.Row="6" Grid.Column="1"
                         Background="Transparent"
                         BorderThickness="0"
                         HorizontalAlignment="Left"
                         MinWidth="30"
                         Cursor="Hand"
                         Click="Username_Click" />
-                <TextBlock Padding="5" x:Name="tbkOrigin" Grid.Row="6" Grid.Column="1" />
-                <StackPanel x:Name="spTags" Orientation="Horizontal" Grid.Row="7" Grid.Column="1"></StackPanel>
+                <TextBlock Padding="5" x:Name="tbkOrigin" Grid.Row="7" Grid.Column="1" />
+                <StackPanel x:Name="spTags" Orientation="Horizontal" Grid.Row="8" Grid.Column="1"></StackPanel>
             </Grid>
             <StackPanel Visibility="{Binding LoggedIn, Converter={StaticResource BoolToVis}}" Margin="0,15,0,0">
                 <TextBlock Text="Submit Solution" FontSize="20" />

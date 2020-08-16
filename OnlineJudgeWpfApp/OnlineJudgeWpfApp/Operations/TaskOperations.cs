@@ -111,14 +111,16 @@ namespace OnlineJudgeWpfApp.Operations
             }
         }
 
-        public bool PutTask(Task task, int id)
+        public string PutTask(Task task, int id)
         {
             if (Globals.LoggedInUser == null)
             {
-                return false;
+                return "";
             }
 
             // Convert to UTF8
+
+            
             task.Description = Encoding.UTF8.GetString(Encoding.Default.GetBytes(task.Description));
 
             string endpoint = string.Format("{0}/task/{1}", baseUrl, id);
@@ -132,11 +134,11 @@ namespace OnlineJudgeWpfApp.Operations
             try
             {
                 string response = wc.UploadString(endpoint, method, json);
-                return true;
+                return response;
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                return false;
+                return e.Message;
             }
         }
     }

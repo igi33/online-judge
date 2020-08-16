@@ -63,6 +63,7 @@
     </ApplicationDefinition>
     <Compile Include="Converters\BooleanConverter.cs" />
     <Compile Include="Converters\BooleanToVisibilityConverter.cs" />
+    <Compile Include="Converters\MathConverter.cs" />
     <Compile Include="Models\ComputerLanguage.cs" />
     <Compile Include="Models\Submission.cs" />
     <Compile Include="Models\Tag.cs" />

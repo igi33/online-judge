@@ -2,6 +2,7 @@
 
 namespace OnlineJudgeApi.Entities
 {
+    [Table("testcases")]
     public class TestCase
     {
         public int Id { get; set; }

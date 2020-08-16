@@ -13,6 +13,8 @@
             x:Key="BoolToVisInv"
             True="Collapsed" 
             False="Visible" />
+        <cv:MathConverter
+            x:Key="MathConverter" />
         <Style x:Key="CellElementStyle" TargetType="TextBlock">
             <Setter Property="Margin" Value="7" />
         </Style>

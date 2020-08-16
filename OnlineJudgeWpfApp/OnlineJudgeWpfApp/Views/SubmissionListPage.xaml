@@ -22,6 +22,7 @@
     <StackPanel Margin="20,0,20,20">
         <TextBlock x:Name="tbkHeading" Text="Submission List" FontSize="25" />
         <DataGrid Name="dgSubmissions" Margin="0,15,0,0"
+                  PreviewMouseWheel="UIElement_OnPreviewMouseWheel"
                   AutoGenerateColumns="False"
                   CanUserAddRows="False"
                   IsReadOnly="True"
@@ -60,6 +61,8 @@
                 </DataGridTemplateColumn>
                 <DataGridTextColumn ElementStyle="{StaticResource CellElementStyle}" Header="Submitted on" Binding="{Binding TimeSubmitted}" />
                 <DataGridTextColumn ElementStyle="{StaticResource CellElementStyle}" Header="Language" Binding="{Binding ComputerLanguage.Name}" />
+                <DataGridTextColumn ElementStyle="{StaticResource CellElementStyle}" Header="Time (s)" Binding="{Binding ExecutionTime, Converter={StaticResource MathConverter}, ConverterParameter=@VALUE/1000.0}" />
+                <DataGridTextColumn ElementStyle="{StaticResource CellElementStyle}" Header="Memory (MiB)" Binding="{Binding ExecutionMemory, Converter={StaticResource MathConverter}, ConverterParameter=@VALUE/1000000.0}" />
                 <DataGridTextColumn ElementStyle="{StaticResource CellElementStyle}" Header="Status" Binding="{Binding Status}" />
             </DataGrid.Columns>
         </DataGrid>

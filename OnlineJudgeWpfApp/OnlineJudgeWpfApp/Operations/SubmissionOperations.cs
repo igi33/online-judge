@@ -15,7 +15,10 @@ namespace OnlineJudgeWpfApp.Operations
         {
             string endpoint = string.Format("{0}/submission/task/{1}/user/{2}", baseUrl, taskId, userId);
 
-            WebClient wc = new WebClient();
+            WebClient wc = new WebClient
+            {
+                Encoding = Encoding.UTF8
+            };
             wc.Headers["Content-Type"] = "application/json";
 
             if (Globals.LoggedInUser != null)
@@ -39,7 +42,10 @@ namespace OnlineJudgeWpfApp.Operations
         {
             string endpoint = string.Format("{0}/submission/task/{1}/best", baseUrl, taskId);
 
-            WebClient wc = new WebClient();
+            WebClient wc = new WebClient
+            {
+                Encoding = Encoding.UTF8
+            };
             wc.Headers["Content-Type"] = "application/json";
 
             try
@@ -69,7 +75,10 @@ namespace OnlineJudgeWpfApp.Operations
                 langid = langId,
             });
 
-            WebClient wc = new WebClient();
+            WebClient wc = new WebClient
+            {
+                Encoding = Encoding.UTF8
+            };
             wc.Headers["Content-Type"] = "application/json";
             wc.Headers["Authorization"] = string.Format("Bearer {0}", Globals.LoggedInUser.Token);
 

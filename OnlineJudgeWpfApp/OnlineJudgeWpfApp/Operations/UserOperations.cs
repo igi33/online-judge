@@ -26,7 +26,10 @@ namespace OnlineJudgeWpfApp.Operations
                 password
             });
 
-            WebClient wc = new WebClient();
+            WebClient wc = new WebClient
+            {
+                Encoding = Encoding.UTF8
+            };
             wc.Headers["Content-Type"] = "application/json";
             try
             {
@@ -48,7 +51,10 @@ namespace OnlineJudgeWpfApp.Operations
             string endpoint = string.Format("{0}/user/{1}", baseUrl, userId);
             //string access_token = user.Token;
 
-            WebClient wc = new WebClient();
+            WebClient wc = new WebClient
+            {
+                Encoding = Encoding.UTF8
+            };
             wc.Headers["Content-Type"] = "application/json";
             try
             {
@@ -79,7 +85,10 @@ namespace OnlineJudgeWpfApp.Operations
                 email
             });
 
-            WebClient wc = new WebClient();
+            WebClient wc = new WebClient
+            {
+                Encoding = Encoding.UTF8
+            };
             wc.Headers["Content-Type"] = "application/json";
             try
             {

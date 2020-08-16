@@ -15,7 +15,10 @@ namespace OnlineJudgeWpfApp.Operations
         {
             string endpoint = string.Format("{0}/computerlanguage", baseUrl);
 
-            WebClient wc = new WebClient();
+            WebClient wc = new WebClient
+            {
+                Encoding = Encoding.UTF8
+            };
             wc.Headers["Content-Type"] = "application/json";
 
             try

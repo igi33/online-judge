@@ -156,19 +156,14 @@ namespace OnlineJudgeWpfApp.Views
             }
             else
             {
-                // TODO: TIDY UP
-                /*if (ops.PutTask(task, Id))
+                if (ops.PutTask(task, Id))
                 {
                     NavigationService.Navigate(new TaskDetailsPage(MainWindowVm, Id));
                 }
                 else
-                {*/
-                string res = ops.PutTask(task, Id);
-                if (!string.IsNullOrEmpty(res))
                 {
-                    MessageBox.Show(res);
+                    MessageBox.Show("There's been an error editing the task");
                 }
-                //}
             }
         }
 

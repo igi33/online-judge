@@ -15,7 +15,10 @@ namespace OnlineJudgeWpfApp.Operations
         {
             string endpoint = string.Format("{0}/tag", baseUrl);
 
-            WebClient wc = new WebClient();
+            WebClient wc = new WebClient
+            {
+                Encoding = Encoding.UTF8
+            };
             wc.Headers["Content-Type"] = "application/json";
 
             try
@@ -34,7 +37,10 @@ namespace OnlineJudgeWpfApp.Operations
         {
             string endpoint = string.Format("{0}/tag/{1}", baseUrl, tagId);
 
-            WebClient wc = new WebClient();
+            WebClient wc = new WebClient
+            {
+                Encoding = Encoding.UTF8
+            };
             wc.Headers["Content-Type"] = "application/json";
 
             try

@@ -15,7 +15,10 @@ namespace OnlineJudgeWpfApp.Operations
         {
             string endpoint = tagId == 0 ? string.Format("{0}/task", baseUrl) : string.Format("{0}/task/tag/{1}", baseUrl, tagId);
 
-            WebClient wc = new WebClient();
+            WebClient wc = new WebClient
+            {
+                Encoding = Encoding.UTF8
+            };
             wc.Headers["Content-Type"] = "application/json";
 
             if (Globals.LoggedInUser != null)
@@ -39,7 +42,10 @@ namespace OnlineJudgeWpfApp.Operations
         {
             string endpoint = string.Format("{0}/task/solved/user/{1}", baseUrl, userId);
 
-            WebClient wc = new WebClient();
+            WebClient wc = new WebClient
+            {
+                Encoding = Encoding.UTF8
+            };
             wc.Headers["Content-Type"] = "application/json";
 
             try
@@ -58,7 +64,10 @@ namespace OnlineJudgeWpfApp.Operations
         {
             string endpoint = string.Format("{0}/task/{1}", baseUrl, id);
 
-            WebClient wc = new WebClient();
+            WebClient wc = new WebClient
+            {
+                Encoding = Encoding.UTF8
+            };
             wc.Headers["Content-Type"] = "application/json";
 
             if (Globals.LoggedInUser != null)
@@ -72,7 +81,7 @@ namespace OnlineJudgeWpfApp.Operations
                 Task task = JsonConvert.DeserializeObject<Task>(response);
                 
                 // Convert to UTF8
-                task.Description = Encoding.UTF8.GetString(Encoding.Default.GetBytes(task.Description));
+                //task.Description = Encoding.UTF8.GetString(Encoding.Default.GetBytes(task.Description));
 
                 return task;
             }
@@ -89,14 +98,14 @@ namespace OnlineJudgeWpfApp.Operations
                 return null;
             }
 
-            // Convert to UTF8
-            task.Description = Encoding.UTF8.GetString(Encoding.Default.GetBytes(task.Description));
-
             string endpoint = string.Format("{0}/task/", baseUrl);
             string method = "POST";
             string json = JsonConvert.SerializeObject(task);
 
-            WebClient wc = new WebClient();
+            WebClient wc = new WebClient
+            {
+                Encoding = Encoding.UTF8
+            };
             wc.Headers["Content-Type"] = "application/json";
             wc.Headers["Authorization"] = string.Format("Bearer {0}", Globals.LoggedInUser.Token);
 
@@ -111,34 +120,32 @@ namespace OnlineJudgeWpfApp.Operations
             }
         }
 
-        public string PutTask(Task task, int id)
+        public bool PutTask(Task task, int id)
         {
             if (Globals.LoggedInUser == null)
             {
-                return "";
+                return false;
             }
-
-            // Convert to UTF8
-
-            
-            task.Description = Encoding.UTF8.GetString(Encoding.Default.GetBytes(task.Description));
 
             string endpoint = string.Format("{0}/task/{1}", baseUrl, id);
             string method = "PUT";
             string json = JsonConvert.SerializeObject(task);
 
-            WebClient wc = new WebClient();
+            WebClient wc = new WebClient
+            {
+                Encoding = Encoding.UTF8
+            };
             wc.Headers["Content-Type"] = "application/json";
             wc.Headers["Authorization"] = string.Format("Bearer {0}", Globals.LoggedInUser.Token);
 
             try
             {
                 string response = wc.UploadString(endpoint, method, json);
-                return response;
+                return true;
             }
-            catch (Exception e)
+            catch (Exception)
             {
-                return e.Message;
+                return false;
             }
         }
     }

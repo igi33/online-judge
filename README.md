@@ -1,33 +1,49 @@
 # Online Judge
-*Programming Language Theory, PMF Nis: CS*
 
 ## Project Idea
 A simple online judge platform which grades program solutions automatically.
 
 ## Features
+- Solve algorithmic problems in given time and memory limits
 - Task and test case creation
-- Support for multiple programming languages
+- Support for task solutions in multiple programming languages
 - Tags for tasks
 - User profiles showing solved tasks
 
+## Server Requirements
+The operating system requirement for the server is Linux because of its nifty features. I have used Debian-based Ubuntu 18.04 for testing but it's probably possible to use other Linux distributions as well.
+
+#### Server configuration
+1. Install cgroup tools for manipulation of cgroups (cgcreate, cgset, cgget, cgexec, cgdelete)
+$ sudo apt install cgroup-tools
+2. Add commands in the /etc/sudoers file to be usable as sudo without a password:
+Execute the following command and insert the below two lines at the end of the file:
+$ sudo visudo /etc/sudoers
+yourLinuxUsername ALL = (root) NOPASSWD: /usr/bin/cgcreate,/usr/bin/cgset,/usr/bin/cgexec,/usr/bin/cgdelete
+yourLinuxUsername ALL = (root) NOPASSWD: /usr/bin/timeout
+3. Make a directory executionroot to serve as a chroot jail from which the task solutions will be executed
+4. Copy /bin/bash and its dependenciess (using ldd and cp) into executionroot
+
 ## Frameworks and Requirements
-#### Back End: ASP.NET Core - C# Web API Framework by Microsoft
+#### Back End: ASP.NET Core - A C# Web API Framework by Microsoft
 ASP.NET Core Web API version used: 2.2\
 Authentication handled via JSON Web Tokens (JWT)
 
-Requirements:
+Versions used:
 
 - .NET Core 2.2 SDK
 - MySQL 8.0.11
 
-#### Front End: WPF - C# Front End Framework for Windows by Microsoft
+#### Front End: Angular - A Typescript Front End Web Framework by Google
+...
+
+#### Front End: WPF - A C# Front End Framework for Windows by Microsoft
 .NET Framework version used: 4.7.2
 
 ## Running the Application
 #### Database
 - Run the two SQL scripts from the **/database-scripts/ directory** to create the project MySQL database schema and to populate it with initial data
-- The project back end assumes the following MySQL connection pairs: localhost for the server, root for the username and root for the password. Change this if needed in the **/OnlineJudgeApi/OnlineJudgeApi/appsettings.json file**
-- The given table data row for C++ compilation in the ComputerLanguages table assumes the following location of the compiler: **C:/mingw-w64/x86_64-8.1.0-posix-seh-rt_v6-rev0/mingw64/bin**. Change this entry to where your compiler is located!
+- The project back end assumes the following MySQL connection pairs: localhost for the server, root for the username and no password. Change the connection string in the **/OnlineJudgeApi/OnlineJudgeApi/appsettings.json file**
 
 #### Back End
 To serve the API locally run the following command from the **/OnlineJudgeApi/OnlineJudgeApi/ directory**:

@@ -143,7 +143,7 @@ namespace OnlineJudgeApi.Controllers
                 UserId = userId,
                 TimeSubmitted = DateTime.Now,
                 TaskId = taskId,
-                Status = "IP",
+                Status = "UD",
                 ExecutionTime = 0,
                 ExecutionMemory = 0,
             };
@@ -209,21 +209,18 @@ namespace OnlineJudgeApi.Controllers
                         q.StartInfo.Arguments = $"-c \"{escapedExecCmd}\"";
                         q.StartInfo.RedirectStandardInput = true;
                         q.StartInfo.RedirectStandardOutput = true;
-                        q.StartInfo.RedirectStandardError = true;
                         q.StartInfo.CreateNoWindow = false;
                         q.StartInfo.UseShellExecute = false;
-                        
                         q.OutputDataReceived += new DataReceivedEventHandler((sender, e) =>
                         {
                             if (!string.IsNullOrEmpty(e.Data))
                             {
-                                output += e.Data;
+                                output += e.Data + "\n";
                             }
                         });
                         
                         q.Start();
                         q.BeginOutputReadLine();
-                        
 
                         StreamWriter inputWriter = q.StandardInput;
                         inputWriter.Write(tc.Input);
@@ -277,12 +274,35 @@ namespace OnlineJudgeApi.Controllers
                         {
                             // Successfully executed
 
-                            // Check if outputs mismatch
-                            if (!output.Trim().Equals(tc.Output.Trim()))
+                            // Check if submission output matches the expected output of test case
+                            string[] outputLines = output.Trim().Split(
+                                new[] { "\r\n", "\r", "\n" },
+                                StringSplitOptions.None
+                            );
+                            string[] tcOutputLines = tc.Output.Trim().Split(
+                                new[] { "\r\n", "\r", "\n" },
+                                StringSplitOptions.None
+                            );
+
+                            if (outputLines.Length != tcOutputLines.Length)
+                            {
+                                correctSoFar = false;
+                            }
+
+                            int idx = 0;
+                            while (correctSoFar && idx < outputLines.Length)
+                            {
+                                if (!outputLines.ElementAt(idx).Equals(tcOutputLines.ElementAt(idx)))
+                                {
+                                    correctSoFar = false;
+                                }
+                                ++idx;
+                            }
+
+                            if (!correctSoFar)
                             {
                                 // Mismatch, set status as rejected
                                 submission.Status = "RJ";
-                                correctSoFar = false;
                             }
                         }
                     }

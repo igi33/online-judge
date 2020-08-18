@@ -24,6 +24,7 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
@@ -33,9 +34,10 @@
             <TextBlock Margin="5" Padding="5" Grid.Row="0" Grid.Column="0" Text="Name:" />
             <TextBlock Margin="5" Padding="5" Grid.Row="1" Grid.Column="0" Text="Description:" />
             <TextBlock Margin="5" Padding="5" Grid.Row="2" Grid.Column="0" Text="Time Limit (ms):" />
-            <TextBlock Margin="5" Padding="5" Grid.Row="3" Grid.Column="0" Text="Origin:" />
-            <TextBlock Margin="5" Padding="5" Grid.Row="4" Grid.Column="0" Text="Tags (comma separated):" />
-            <TextBlock Margin="5" Padding="5" Grid.Row="5" Grid.Column="0" Text="Test Cases:" />
+            <TextBlock Margin="5" Padding="5" Grid.Row="3" Grid.Column="0" Text="Memory Limit (B):" />
+            <TextBlock Margin="5" Padding="5" Grid.Row="4" Grid.Column="0" Text="Origin:" />
+            <TextBlock Margin="5" Padding="5" Grid.Row="5" Grid.Column="0" Text="Tags (comma separated):" />
+            <TextBlock Margin="5" Padding="5" Grid.Row="6" Grid.Column="0" Text="Test Cases:" />
             
             <TextBox Margin="5" Padding="5" Grid.Row="0" Grid.Column="1" x:Name="tbName" Text="" />
             <TextBox Grid.Row="1" Grid.Column="1" x:Name="tbDesc"
@@ -47,9 +49,10 @@
                      Height="300"
                      Text="" />
             <TextBox Margin="5" Padding="5" Grid.Row="2" Grid.Column="1" x:Name="tbTimelimit" Text="" />
-            <TextBox Margin="5" Padding="5" Grid.Row="3" Grid.Column="1" x:Name="tbOrigin" Text="" />
-            <TextBox Margin="5" Padding="5" Grid.Row="4" Grid.Column="1" x:Name="tbTags" Text="" />
-            <StackPanel Margin="5" Grid.Row="5" Grid.Column="1">
+            <TextBox Margin="5" Padding="5" Grid.Row="3" Grid.Column="1" x:Name="tbMemorylimit" Text="" />
+            <TextBox Margin="5" Padding="5" Grid.Row="4" Grid.Column="1" x:Name="tbOrigin" Text="" />
+            <TextBox Margin="5" Padding="5" Grid.Row="5" Grid.Column="1" x:Name="tbTags" Text="" />
+            <StackPanel Margin="5" Grid.Row="6" Grid.Column="1">
                 <StackPanel Margin="5" Orientation="Horizontal">
                     <TextBlock Margin="5" Text="Number of test cases:" />
                     <TextBox x:Name="tbTcNum" Padding="5" Text="1" Margin="10,0,0,0" Width="50" PreviewTextInput="NumberValidationTextBox" TextChanged="TbTcNum_TextChanged" />
@@ -84,7 +87,7 @@
 
                 </Grid>
             </StackPanel>
-            <Button Margin="5" Padding="5" Grid.Row="6" Grid.Column="1" x:Name="btnSubmit" Cursor="Hand" Width="100" Content="Submit" Click="BtnSubmit_Click" />
+            <Button Margin="5" Padding="5" Grid.Row="7" Grid.Column="1" x:Name="btnSubmit" Cursor="Hand" Width="100" Content="Submit" Click="BtnSubmit_Click" />
         </Grid>
     </StackPanel>
 </Page>

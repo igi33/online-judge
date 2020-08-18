@@ -58,6 +58,7 @@ namespace OnlineJudgeWpfApp.Views
                     tbName.Text = task.Name;
                     tbDesc.Text = task.Description;
                     tbTimelimit.Text = task.TimeLimit.ToString();
+                    tbMemorylimit.Text = task.MemoryLimit.ToString();
                     tbOrigin.Text = task.Origin;
                     tbTags.Text = string.Join(", ", task.Tags.Select(t => t.Name));
 
@@ -92,6 +93,7 @@ namespace OnlineJudgeWpfApp.Views
                 Name = tbName.Text,
                 Description = tbDesc.Text,
                 TimeLimit = int.Parse(tbTimelimit.Text),
+                MemoryLimit = int.Parse(tbMemorylimit.Text),
                 Origin = tbOrigin.Text,
             };
 

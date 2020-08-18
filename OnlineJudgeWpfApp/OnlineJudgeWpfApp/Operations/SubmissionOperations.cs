@@ -11,9 +11,9 @@ namespace OnlineJudgeWpfApp.Operations
 {
     class SubmissionOperations : ApiOperations
     {
-        public List<Submission> GetSubmissions(int taskId = 0, int userId = 0)
+        public List<Submission> GetSubmissions(int taskId = 0, int userId = 0, int limit = 0, int offset = 0)
         {
-            string endpoint = string.Format("{0}/submission/task/{1}/user/{2}", baseUrl, taskId, userId);
+            string endpoint = string.Format("{0}/submission/task/{1}/user/{2}/limit/{3}/offset/{4}", baseUrl, taskId, userId, limit, offset);
 
             WebClient wc = new WebClient
             {

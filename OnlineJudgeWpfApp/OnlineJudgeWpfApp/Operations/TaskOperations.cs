@@ -11,9 +11,9 @@ namespace OnlineJudgeWpfApp.Operations
     class TaskOperations : ApiOperations
     {
         // Get all tasks (tagId == 0) or belonging to tag with some ID
-        public List<Task> GetTasks(int tagId = 0)
+        public List<Task> GetTasks(int tagId = 0, int limit = 0, int offset = 0)
         {
-            string endpoint = tagId == 0 ? string.Format("{0}/task", baseUrl) : string.Format("{0}/task/tag/{1}", baseUrl, tagId);
+            string endpoint = string.Format("{0}/task/{1}limit/{2}/offset/{3}", baseUrl, tagId == 0 ? "" : string.Format("tag/{0}/", tagId), limit, offset);
 
             WebClient wc = new WebClient
             {
@@ -38,9 +38,9 @@ namespace OnlineJudgeWpfApp.Operations
             }
         }
 
-        public List<Task> GetSolvedTasksByUser(int userId)
+        public List<Task> GetSolvedTasksByUser(int userId, int limit = 0, int offset = 0)
         {
-            string endpoint = string.Format("{0}/task/solved/user/{1}", baseUrl, userId);
+            string endpoint = string.Format("{0}/task/solved/user/{1}/limit/{2}/offset/{3}", baseUrl, userId, limit, offset);
 
             WebClient wc = new WebClient
             {

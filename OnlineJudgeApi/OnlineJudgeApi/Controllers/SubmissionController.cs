@@ -31,24 +31,34 @@ namespace OnlineJudgeApi.Controllers
         }
 
         // Get recent submissions, possibly filtered by user and by task (0 as id gets all)
-        // GET: api/Submission/task/0/user/0
-        [HttpGet("task/{taskId}/user/{userId}")]
-        public async Task<IActionResult> GetSubmissions(int taskId, int userId)
+        // with a limit and offset for pagination (limit of 0 means infinite)
+        // GET: api/Submission/task/0/user/0/limit/0/offset/0
+        [HttpGet("task/{taskId}/user/{userId}/limit/{limit}/offset/{offset}")]
+        public async Task<IActionResult> GetSubmissions(int taskId, int userId, int limit, int offset)
         {
+            var query = _context.Submissions.Include(s => s.Task).Include(s => s.User).Include(s => s.ComputerLanguage)
+                .Where(s => (taskId != 0 && s.TaskId == taskId || taskId == 0 && s.TaskId > 0) && (userId != 0 && s.UserId == userId || userId == 0 && s.UserId > 0))
+                .OrderByDescending(s => s.Id);
+
+            List<Submission> submissions;
+
+            if (limit != 0)
+            {
+                submissions = await query.Skip(offset).Take(limit).ToListAsync();
+            }
+            else
+            {
+                submissions = await query.ToListAsync();
+            }
+
+            var submissionDtos = mapper.Map<IList<SubmissionDto>>(submissions);
+
             int currentUserId = 0; // User not logged in
             if (User.Identity.IsAuthenticated)
             {
                 // Fetch current user id
                 currentUserId = int.Parse((User.Identity as ClaimsIdentity).FindFirst(ClaimTypes.Name).Value);
             }
-
-            var submissions = await _context.Submissions.Include(s => s.Task).Include(s => s.User).Include(s => s.ComputerLanguage)
-                .Where(s => (taskId != 0 && s.TaskId == taskId || taskId == 0 && s.TaskId > 0) && (userId != 0 && s.UserId == userId || userId == 0 && s.UserId > 0))
-                .OrderByDescending(s => s.Id)
-                .ToListAsync();
-
-            var submissionDtos = mapper.Map<IList<SubmissionDto>>(submissions);
-
             foreach (SubmissionDto sDto in submissionDtos)
             {
                 if (currentUserId == 0 || sDto.User.Id != currentUserId)
@@ -228,16 +238,7 @@ namespace OnlineJudgeApi.Controllers
 
                         q.WaitForExit();
 
-                        /*
-                            // Time limit exceeded
-                            string qid = q.Id.ToString();
-                            submissionDto.Message = string.Format("sudo kill -9 {0}", q.Id).Bash(); // q.Kill() doesn't work because of privileges
-                            submission.Status = "TLE";
-                            
-                            correctSoFar = false;
-                        */
-
-                        // fetch and check if execution CPU time really meets the limit
+                        // fetch and check if execution CPU time actually meets the limit
                         double userCpuTimeS = double.Parse(string.Format("grep -oP '(?<=user ).*' {0}", timeOutputFilePath).Bash());
                         double sysCpuTimeS = double.Parse(string.Format("grep -oP '(?<=sys ).*' {0}", timeOutputFilePath).Bash());
                         int totalCpuTimeMs = (int)((userCpuTimeS + sysCpuTimeS) * 1000 + 0.5);
@@ -325,8 +326,7 @@ namespace OnlineJudgeApi.Controllers
 
             // Delete created files
             System.IO.File.Delete(sourceFilePath);
-            
-            //System.IO.File.Delete(timeOutputFilePath);
+            System.IO.File.Delete(timeOutputFilePath);
 
             // Prepare response DTO
             SubmissionDto responseDto = mapper.Map<SubmissionDto>(submission);

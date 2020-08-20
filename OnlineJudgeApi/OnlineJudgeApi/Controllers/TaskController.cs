@@ -28,7 +28,7 @@ namespace OnlineJudgeApi.Controllers
         }
 
         // GET: api/Task/limit/0/offset/0
-        [HttpGet("/limit/{limit}/offset/{offset}")]
+        [HttpGet("limit/{limit}/offset/{offset}")]
         public async Task<IActionResult> GetTasks(int limit, int offset)
         {
             var query = _context.Tasks.Include(t => t.User).OrderBy(t => t.Id);

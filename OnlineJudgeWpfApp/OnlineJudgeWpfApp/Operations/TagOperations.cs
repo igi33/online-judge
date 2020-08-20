@@ -11,9 +11,16 @@ namespace OnlineJudgeWpfApp.Operations
 {
     class TagOperations : ApiOperations
     {
+        private readonly string url;
+
+        public TagOperations()
+        {
+            url = baseUrl + "/tag";
+        }
+
         public List<Tag> GetTags()
         {
-            string endpoint = string.Format("{0}/tag", baseUrl);
+            string endpoint = url;
 
             WebClient wc = new WebClient
             {
@@ -35,7 +42,7 @@ namespace OnlineJudgeWpfApp.Operations
 
         public Tag GetTag(int tagId)
         {
-            string endpoint = string.Format("{0}/tag/{1}", baseUrl, tagId);
+            string endpoint = string.Format("{0}/{1}", url, tagId);
 
             WebClient wc = new WebClient
             {

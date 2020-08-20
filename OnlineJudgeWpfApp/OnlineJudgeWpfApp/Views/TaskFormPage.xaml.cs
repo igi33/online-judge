@@ -136,12 +136,12 @@ namespace OnlineJudgeWpfApp.Views
                 TextBox tbOutput = (TextBox)gridTcs.Children.Cast<UIElement>().First(el => Grid.GetRow(el) == i && Grid.GetColumn(el) == 1);
                 string output = tbOutput.Text.Trim();
 
-                if (!string.IsNullOrEmpty(input) && !string.IsNullOrEmpty(output))
+                if (!string.IsNullOrEmpty(input) || !string.IsNullOrEmpty(output))
                 {
                     testCases.Add(new TestCase
                     {
-                        Input = string.Format("{0}\n", input),
-                        Output = string.Format("{0}\n", output),
+                        Input = string.IsNullOrEmpty(input) ? "" : string.Format("{0}\n", input),
+                        Output = string.IsNullOrEmpty(output) ? "" : string.Format("{0}\n", output),
                     });
                 }
             }

@@ -34,7 +34,7 @@ namespace OnlineJudgeWpfApp.Views
         private void ShowSubmissions()
         {
             SubmissionOperations ops = new SubmissionOperations();
-            List<Submission> submissions = ops.GetSubmissions();
+            List<Submission> submissions = ops.GetSubmissions(0, 0, 50);
             if (submissions == null)
             {
                 MessageBox.Show("Submissions request failed");

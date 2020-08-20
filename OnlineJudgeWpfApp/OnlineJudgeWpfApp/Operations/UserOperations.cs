@@ -11,6 +11,13 @@ namespace OnlineJudgeWpfApp.Operations
 {
     class UserOperations : ApiOperations
     {
+        private readonly string url;
+
+        public UserOperations()
+        {
+            url = baseUrl + "/user";
+        }
+
         /**
          * Authenticate user with Web Api Endpoint
          * @param string username
@@ -18,7 +25,7 @@ namespace OnlineJudgeWpfApp.Operations
          */
         public User AuthenticateUser(string username, string password)
         {
-            string endpoint = string.Format("{0}/user/authenticate", baseUrl);
+            string endpoint = string.Format("{0}/authenticate", url);
             string method = "POST";
             string json = JsonConvert.SerializeObject(new
             {
@@ -48,7 +55,7 @@ namespace OnlineJudgeWpfApp.Operations
          */
         public User GetUserDetails(int userId)
         {
-            string endpoint = string.Format("{0}/user/{1}", baseUrl, userId);
+            string endpoint = string.Format("{0}/{1}", url, userId);
             //string access_token = user.Token;
 
             WebClient wc = new WebClient
@@ -76,7 +83,7 @@ namespace OnlineJudgeWpfApp.Operations
          */
         public User RegisterUser(string username, string password, string email)
         {
-            string endpoint = string.Format("{0}/user", baseUrl);
+            string endpoint = url;
             string method = "POST";
             string json = JsonConvert.SerializeObject(new
             {

@@ -11,9 +11,16 @@ namespace OnlineJudgeWpfApp.Operations
 {
     class ComputerLanguageOperations : ApiOperations
     {
+        private readonly string url;
+
+        public ComputerLanguageOperations()
+        {
+            url = baseUrl + "/computerlanguage";
+        }
+
         public List<ComputerLanguage> GetLangs()
         {
-            string endpoint = string.Format("{0}/computerlanguage", baseUrl);
+            string endpoint = url;
 
             WebClient wc = new WebClient
             {

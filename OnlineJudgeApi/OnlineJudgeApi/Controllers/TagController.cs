@@ -26,7 +26,7 @@ namespace OnlineJudgeApi.Controllers
 
         // GET: api/Tag
         [HttpGet]
-        public async Task<IActionResult> GetTags()
+        public async Task<ActionResult<IEnumerable<TagDto>>> GetTags()
         {
             var tags = await _context.Tags.ToListAsync();
             var tagDtos = mapper.Map<IList<TagDto>>(tags);

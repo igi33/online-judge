@@ -11,9 +11,21 @@ namespace OnlineJudgeWpfApp.Operations
 {
     class SubmissionOperations : ApiOperations
     {
+        private readonly string url;
+
+        public SubmissionOperations()
+        {
+            url = baseUrl + "/submission";
+        }
+
         public List<Submission> GetSubmissions(int taskId = 0, int userId = 0, int limit = 0, int offset = 0)
         {
-            string endpoint = string.Format("{0}/submission/task/{1}/user/{2}/limit/{3}/offset/{4}", baseUrl, taskId, userId, limit, offset);
+            string endpoint = string.Format("{0}{1}", url, MakeQueryString(new Dictionary<string, object> {
+                ["taskId"] = taskId,
+                ["userId"] = userId,
+                ["limit"] = limit,
+                ["offset"] = offset,
+            }));
 
             WebClient wc = new WebClient
             {
@@ -38,9 +50,12 @@ namespace OnlineJudgeWpfApp.Operations
             }
         }
 
-        public List<Submission> GetFastestSubmissionsOfTask(int taskId)
+        public List<Submission> GetFastestSubmissionsOfTask(int taskId, int limit = 10)
         {
-            string endpoint = string.Format("{0}/submission/task/{1}/best", baseUrl, taskId);
+            string endpoint = string.Format("{0}/task/{1}/best{2}", url, taskId, MakeQueryString(new Dictionary<string, object>
+            {
+                ["limit"] = limit,
+            }));
 
             WebClient wc = new WebClient
             {
@@ -67,7 +82,7 @@ namespace OnlineJudgeWpfApp.Operations
                 return null;
             }
 
-            string endpoint = string.Format("{0}/submission/task/{1}", baseUrl, taskId);
+            string endpoint = string.Format("{0}/task/{1}", url, taskId);
             string method = "POST";
             string json = JsonConvert.SerializeObject(new
             {

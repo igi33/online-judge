@@ -10,10 +10,22 @@ namespace OnlineJudgeWpfApp.Operations
 {
     class TaskOperations : ApiOperations
     {
-        // Get all tasks (tagId == 0) or belonging to tag with some ID
+        private readonly string url;
+
+        public TaskOperations()
+        {
+            url = baseUrl + "/task";
+        }
+
+        // Get tasks possibly paged and filtered by tag id
         public List<Task> GetTasks(int tagId = 0, int limit = 0, int offset = 0)
         {
-            string endpoint = string.Format("{0}/task/{1}limit/{2}/offset/{3}", baseUrl, tagId == 0 ? "" : string.Format("tag/{0}/", tagId), limit, offset);
+            string endpoint = string.Format("{0}{1}", url, MakeQueryString(new Dictionary<string, object>
+            {
+                ["tagId"] = tagId,
+                ["limit"] = limit,
+                ["offset"] = offset,
+            }));
 
             WebClient wc = new WebClient
             {
@@ -40,7 +52,11 @@ namespace OnlineJudgeWpfApp.Operations
 
         public List<Task> GetSolvedTasksByUser(int userId, int limit = 0, int offset = 0)
         {
-            string endpoint = string.Format("{0}/task/solved/user/{1}/limit/{2}/offset/{3}", baseUrl, userId, limit, offset);
+            string endpoint = string.Format("{0}/solvedby/{1}{2}", url, userId, MakeQueryString(new Dictionary<string, object>
+            {
+                ["limit"] = limit,
+                ["offset"] = offset
+            }));
 
             WebClient wc = new WebClient
             {
@@ -62,7 +78,7 @@ namespace OnlineJudgeWpfApp.Operations
 
         public Task GetTaskDetails(int id)
         {
-            string endpoint = string.Format("{0}/task/{1}", baseUrl, id);
+            string endpoint = string.Format("{0}/{1}", url, id);
 
             WebClient wc = new WebClient
             {
@@ -80,9 +96,6 @@ namespace OnlineJudgeWpfApp.Operations
                 string response = wc.DownloadString(endpoint);
                 Task task = JsonConvert.DeserializeObject<Task>(response);
                 
-                // Convert to UTF8
-                //task.Description = Encoding.UTF8.GetString(Encoding.Default.GetBytes(task.Description));
-
                 return task;
             }
             catch (Exception)
@@ -98,7 +111,7 @@ namespace OnlineJudgeWpfApp.Operations
                 return null;
             }
 
-            string endpoint = string.Format("{0}/task/", baseUrl);
+            string endpoint = url;
             string method = "POST";
             string json = JsonConvert.SerializeObject(task);
 
@@ -127,7 +140,7 @@ namespace OnlineJudgeWpfApp.Operations
                 return false;
             }
 
-            string endpoint = string.Format("{0}/task/{1}", baseUrl, id);
+            string endpoint = string.Format("{0}/{1}", url, id);
             string method = "PUT";
             string json = JsonConvert.SerializeObject(task);
 

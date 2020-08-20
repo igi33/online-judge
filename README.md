@@ -15,14 +15,19 @@ The operating system requirement for the server is Linux because of its nifty fe
 
 #### Server configuration
 1. Install cgroup tools for manipulation of cgroups (cgcreate, cgset, cgget, cgexec, cgdelete)
+```console
 $ sudo apt install cgroup-tools
-2. Add commands in the /etc/sudoers file to be usable as sudo without a password:
-Execute the following command and insert the below two lines at the end of the file:
+```
+2. Add commands in the **/etc/sudoers** file to be usable as sudo without a password (required for the system to be autonomous). Execute the following command and insert the below two lines at the end of the file:
+```console
 $ sudo visudo /etc/sudoers
+```
+```console
 yourLinuxUsername ALL = (root) NOPASSWD: /usr/bin/cgcreate,/usr/bin/cgset,/usr/bin/cgexec,/usr/bin/cgdelete
 yourLinuxUsername ALL = (root) NOPASSWD: /usr/bin/timeout
+```
 3. Make a directory executionroot to serve as a chroot jail from which the task solutions will be executed
-4. Copy /bin/bash and its dependenciess (using ldd and cp) into executionroot
+4. Copy **/bin/bash** and its dependenciess (using ldd and cp) into executionroot
 
 ## Frameworks and Requirements
 #### Back End: ASP.NET Core - A C# Web API Framework by Microsoft

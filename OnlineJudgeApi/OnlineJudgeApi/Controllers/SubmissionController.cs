@@ -30,14 +30,13 @@ namespace OnlineJudgeApi.Controllers
             this.mapper = mapper;
         }
 
-        // Get recent submissions, possibly filtered by user and by task (0 as id gets all)
-        // with a limit and offset for pagination (limit of 0 means infinite)
-        // GET: api/Submission/task/0/user/0/limit/0/offset/0
-        [HttpGet("task/{taskId}/user/{userId}/limit/{limit}/offset/{offset}")]
-        public async Task<IActionResult> GetSubmissions(int taskId, int userId, int limit, int offset)
+        // Get recent submissions, possibly paged and filtered by user id or task id
+        // GET: api/Submission?taskId=0&userId=0&limit=0&offset=0
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<SubmissionDto>>> GetSubmissions(int taskId = 0, int userId = 0, int limit = 0, int offset = 0)
         {
             var query = _context.Submissions.Include(s => s.Task).Include(s => s.User).Include(s => s.ComputerLanguage)
-                .Where(s => (taskId != 0 && s.TaskId == taskId || taskId == 0 && s.TaskId > 0) && (userId != 0 && s.UserId == userId || userId == 0 && s.UserId > 0))
+                .Where(s => (taskId != 0 ? s.TaskId == taskId : s.TaskId > 0) && (userId != 0 ? s.UserId == userId : s.UserId > 0))
                 .OrderByDescending(s => s.Id);
 
             List<Submission> submissions;
@@ -72,7 +71,6 @@ namespace OnlineJudgeApi.Controllers
         }
 
         // GET: api/Submission/5
-        [Authorize]
         [HttpGet("{id}")]
         public async Task<ActionResult<SubmissionDto>> GetSubmission(int id)
         {
@@ -88,9 +86,13 @@ namespace OnlineJudgeApi.Controllers
 
             SubmissionDto dto = mapper.Map<SubmissionDto>(submission);
 
-            // Fetch current user id
-            int userId = int.Parse((User.Identity as ClaimsIdentity).FindFirst(ClaimTypes.Name).Value);
-            if (dto.User.Id != userId)
+            int currentUserId = 0; // User not logged in
+            if (User.Identity.IsAuthenticated)
+            {
+                // Fetch current user id
+                currentUserId = int.Parse((User.Identity as ClaimsIdentity).FindFirst(ClaimTypes.Name).Value);
+            }
+            if (currentUserId == 0 || dto.User.Id != currentUserId)
             {
                 // Hide source code
                 dto.SourceCode = "";
@@ -99,15 +101,15 @@ namespace OnlineJudgeApi.Controllers
             return dto;
         }
 
-        // Get fastest accepted submissions for task
-        // GET: api/Submission/task/5/best
+        // Get fastest accepted submissions for specific task
+        // GET: api/Submission/task/5/best?limit=10
         [HttpGet("task/{taskId}/best")]
-        public async Task<IActionResult> GetBestSubmissionsOfTask(int taskId)
+        public async Task<ActionResult<IEnumerable<SubmissionDto>>> GetBestSubmissionsOfTask(int taskId, int limit = 10)
         {
             var submissions = await _context.Submissions.Include(s => s.User).Include(s => s.ComputerLanguage)
                 .Where(s => s.TaskId == taskId && s.Status.Equals("AC"))
                 .OrderBy(s => s.ExecutionTime)
-                .Take(10)
+                .Take(limit)
                 .ToListAsync();
 
             var submissionDtos = mapper.Map<IList<SubmissionDto>>(submissions);
@@ -124,7 +126,7 @@ namespace OnlineJudgeApi.Controllers
         // POST: api/Submission/task/5
         [Authorize]
         [HttpPost("task/{taskId}")]
-        public async Task<ActionResult<Submission>> PostSubmission(int taskId, [FromBody] SubmissionDto submissionDto)
+        public async Task<ActionResult<SubmissionDto>> PostSubmission(int taskId, [FromBody] SubmissionDto submissionDto)
         {
             // Get task info
             Entities.Task task = await _context.Tasks.FindAsync(taskId);

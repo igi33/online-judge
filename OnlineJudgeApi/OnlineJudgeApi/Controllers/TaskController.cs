@@ -27,11 +27,12 @@ namespace OnlineJudgeApi.Controllers
             this.mapper = mapper;
         }
 
-        // GET: api/Task/limit/0/offset/0
-        [HttpGet("limit/{limit}/offset/{offset}")]
-        public async Task<IActionResult> GetTasks(int limit, int offset)
+        // Get list of tasks, possibly paged and filtered by tag id
+        // GET: api/Task?tagId=6limit=0&offset=0
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<TaskDto>>> GetTasks(int tagId = 0, int limit = 0, int offset = 0)
         {
-            var query = _context.Tasks.Include(t => t.User).OrderBy(t => t.Id);
+            var query = _context.Tasks.Where(t => tagId != 0 ? t.TaskTags.Any(tt => tt.TagId == tagId) : t.Id > 0).Include(t => t.User).OrderBy(t => t.Id);
 
             List<Entities.Task> tasks;
             if (limit != 0)
@@ -47,47 +48,11 @@ namespace OnlineJudgeApi.Controllers
             return Ok(taskDtos);
         }
 
-        // Get all tasks tagged as tagId
-        // GET: api/Task/tag/6/limit/0/offset/0
-        [HttpGet("tag/{tagId}/limit/{limit}/offset/{offset}")]
-        public async Task<IActionResult> GetTasksByTag(int tagId, int limit, int offset)
+        // Get list of solved tasks by user, possibly paged
+        // GET: api/Task/solvedby/5?limit=0&offset=0
+        [HttpGet("solvedby/{userId}")]
+        public async Task<ActionResult<IEnumerable<TaskDto>>> GetSolvedByUser(int userId, int limit = 0, int offset = 0)
         {
-            var tag = await _context.Tags.FindAsync(tagId);
-
-            if (tag == null)
-            {
-                return BadRequest();
-            }
-
-            var query = _context.Tasks.Where(t => t.TaskTags.Any(tt => tt.TagId == tagId)).Include(t => t.User).OrderBy(t => t.Id);
-
-            List<Entities.Task> tasks;
-            if (limit != 0)
-            {
-                tasks = await query.Skip(offset).Take(limit).ToListAsync();
-            }
-            else
-            {
-                tasks = await query.ToListAsync();
-            }
-
-
-            var taskDtos = mapper.Map<IList<TaskDto>>(tasks);
-            return Ok(taskDtos);
-        }
-
-        // Get list of solved tasks by user
-        // GET: api/Task/solved/user/5/limit/0/offset/0
-        [HttpGet("solved/user/{userId}/limit/{limit}/offset/{offset}")]
-        public async Task<IActionResult> GetSolvedByUser(int userId, int limit, int offset)
-        {
-            var user = await _context.Users.FindAsync(userId);
-
-            if (user == null)
-            {
-                return BadRequest();
-            }
-
             var query = _context.Submissions.Where(s => s.UserId == userId && s.Status.Equals("AC")).Include(s => s.Task).OrderBy(s => s.Id);
 
             List<Submission> acceptedSubmissionsByUser;

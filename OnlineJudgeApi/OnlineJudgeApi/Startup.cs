@@ -13,6 +13,9 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
 using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
+using System.Security.Claims;
+using System.Linq;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace OnlineJudgeApi
 {
@@ -63,7 +66,9 @@ namespace OnlineJudgeApi
                     OnTokenValidated = context =>
                     {
                         var userService = context.HttpContext.RequestServices.GetRequiredService<IUserService>();
-                        var userId = int.Parse(context.Principal.Identity.Name);
+                        var jwtToken = context.SecurityToken as JwtSecurityToken;
+                        var userId = int.Parse(jwtToken.Claims.First(c => c.Type == JwtRegisteredClaimNames.Sub).Value);
+
                         var user = userService.GetById(userId);
                         if (user == null)
                         {

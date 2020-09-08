@@ -28,7 +28,7 @@ namespace OnlineJudgeApi.Controllers
         }
 
         // Get list of tasks, possibly paged and filtered by tag id
-        // GET: api/Task?tagId=6limit=0&offset=0
+        // GET: api/Task?tagId=6&limit=0&offset=0
         [HttpGet]
         public async Task<ActionResult<IEnumerable<TaskDto>>> GetTasks(int tagId = 0, int limit = 0, int offset = 0)
         {

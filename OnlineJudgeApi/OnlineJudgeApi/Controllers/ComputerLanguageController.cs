@@ -1,14 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using AutoMapper;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OnlineJudgeApi.Dtos;
 using OnlineJudgeApi.Helpers;
-using System.Diagnostics;
 
 namespace OnlineJudgeApi.Controllers
 {
@@ -17,7 +13,7 @@ namespace OnlineJudgeApi.Controllers
     public class ComputerLanguageController : ControllerBase
     {
         private readonly DataContext _context;
-        private IMapper mapper;
+        private readonly IMapper mapper;
 
         public ComputerLanguageController(DataContext context, IMapper mapper)
         {

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -19,7 +20,7 @@ namespace OnlineJudgeApi.Controllers
     public class TaskController : ControllerBase
     {
         private readonly DataContext _context;
-        private IMapper mapper;
+        private readonly IMapper mapper;
 
         public TaskController(DataContext context, IMapper mapper)
         {
@@ -96,8 +97,9 @@ namespace OnlineJudgeApi.Controllers
 
             if (User.Identity.IsAuthenticated)
             {
+
                 // Fetch current user id
-                int userId = int.Parse((User.Identity as ClaimsIdentity).FindFirst(ClaimTypes.Name).Value);
+                int userId = int.Parse(User.FindFirst(JwtRegisteredClaimNames.Sub).Value);
 
                 // Load test cases only if they belong to current user
                 if (task.UserId == userId)
@@ -117,7 +119,7 @@ namespace OnlineJudgeApi.Controllers
                 dto.Tags.Add(tagDto);
             }
 
-            return dto;
+            return Ok(dto);
         }
 
         // Creates task along with test cases and tags
@@ -132,7 +134,7 @@ namespace OnlineJudgeApi.Controllers
             }
 
             // Fetch current user id
-            int userId = int.Parse((User.Identity as ClaimsIdentity).FindFirst(ClaimTypes.Name).Value);
+            int userId = int.Parse(User.FindFirst(JwtRegisteredClaimNames.Sub).Value);
 
             Entities.Task task = mapper.Map<Entities.Task>(taskDto);
             task.UserId = userId;
@@ -208,7 +210,7 @@ namespace OnlineJudgeApi.Controllers
             await _context.Entry(task).Reference(t => t.User).LoadAsync();
 
             // Fetch current user id
-            int userId = int.Parse((User.Identity as ClaimsIdentity).FindFirst(ClaimTypes.Name).Value);
+            int userId = int.Parse(User.FindFirst(JwtRegisteredClaimNames.Sub).Value);
 
             if (task.UserId != userId)
             {
@@ -342,7 +344,7 @@ namespace OnlineJudgeApi.Controllers
                 return NotFound();
             }
 
-            int userId = int.Parse((User.Identity as ClaimsIdentity).FindFirst(ClaimTypes.Name).Value);
+            int userId = int.Parse(User.FindFirst(JwtRegisteredClaimNames.Sub).Value);
 
             if (task.UserId != userId)
             {

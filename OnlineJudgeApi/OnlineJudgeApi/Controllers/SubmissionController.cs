@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IdentityModel.Tokens.Jwt;
 using System.IO;
 using System.Linq;
 using System.Security.Claims;
-using System.Threading;
 using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OnlineJudgeApi.Dtos;
@@ -22,7 +21,7 @@ namespace OnlineJudgeApi.Controllers
     public class SubmissionController : ControllerBase
     {
         private readonly DataContext _context;
-        private IMapper mapper;
+        private readonly IMapper mapper;
 
         public SubmissionController(DataContext context, IMapper mapper)
         {
@@ -56,7 +55,7 @@ namespace OnlineJudgeApi.Controllers
             if (User.Identity.IsAuthenticated)
             {
                 // Fetch current user id
-                currentUserId = int.Parse((User.Identity as ClaimsIdentity).FindFirst(ClaimTypes.Name).Value);
+                currentUserId = int.Parse(User.FindFirst(JwtRegisteredClaimNames.Sub).Value);
             }
             foreach (SubmissionDto sDto in submissionDtos)
             {
@@ -90,7 +89,7 @@ namespace OnlineJudgeApi.Controllers
             if (User.Identity.IsAuthenticated)
             {
                 // Fetch current user id
-                currentUserId = int.Parse((User.Identity as ClaimsIdentity).FindFirst(ClaimTypes.Name).Value);
+                currentUserId = int.Parse(User.FindFirst(JwtRegisteredClaimNames.Sub).Value);
             }
             if (currentUserId == 0 || dto.User.Id != currentUserId)
             {
@@ -98,7 +97,7 @@ namespace OnlineJudgeApi.Controllers
                 dto.SourceCode = "";
             }
 
-            return dto;
+            return Ok(dto);
         }
 
         // Get fastest accepted submissions for specific task
@@ -146,7 +145,7 @@ namespace OnlineJudgeApi.Controllers
             await _context.Entry(task).Collection(t => t.TestCases).LoadAsync();
 
             // Fetch current user id
-            int userId = int.Parse((User.Identity as ClaimsIdentity).FindFirst(ClaimTypes.Name).Value);
+            int userId = int.Parse(User.FindFirst(JwtRegisteredClaimNames.Sub).Value);
 
             Submission submission = new Submission
             {
@@ -164,19 +163,20 @@ namespace OnlineJudgeApi.Controllers
             _context.Submissions.Add(submission);
             await _context.SaveChangesAsync();
 
-            const string rootDir = @"/home/igi33/executionroot/";
+            string cmdUsername = "whoami".Bash().Trim();
+            string rootDir = $"/home/{cmdUsername}/executionroot/";
             string submissionId = submission.Id.ToString();
-            string sourceFileName = string.Format("{0}.{1}", submissionId, lang.Extension);
+            string sourceFileName = $"{submissionId}.{lang.Extension}";
 
-            string binaryFilePath = string.Format("{0}{1}", rootDir, submissionId);
-            string sourceFilePath = string.Format("{0}{1}", rootDir, sourceFileName);
-            string timeOutputFilePath = string.Format("{0}time{1}.txt", rootDir, submissionId);
+            string binaryFilePath = $"{rootDir}{submissionId}";
+            string sourceFilePath = $"{rootDir}{sourceFileName}";
+            string timeOutputFilePath = $"{rootDir}time{submissionId}.txt";
 
             // Create file from source code inside rootDir
             System.IO.File.WriteAllText(sourceFilePath, submissionDto.SourceCode);
 
             // Compile submission
-            BashExecutor executor = new BashExecutor(string.Format("{0} {1}", lang.CompilerFileName, string.Format(lang.CompileCmd, binaryFilePath)));
+            BashExecutor executor = new BashExecutor($"{lang.CompilerFileName} {string.Format(lang.CompileCmd, binaryFilePath)}");
             executor.Execute();
 
             if (executor.ExitCode != 0)
@@ -192,13 +192,15 @@ namespace OnlineJudgeApi.Controllers
                 int maxTimeMs = 0; // Track max execution time of test cases
 
                 // create cgroup
-                string.Format("sudo cgcreate -g memory:{0}", submissionId).Bash();
+                $"sudo cgcreate -g memory:{submissionId}".Bash();
 
+                // increase the limit a bit due to overhead of calling multiple commands in one
                 int pMemLimitB = task.MemoryLimit + 750000;
-                if (pMemLimitB < 1150000)
+                // set minimal limit for cgroup
+                pMemLimitB = Math.Max(pMemLimitB, 1150000);
 
                 // set memory limit a bit higher than task parameter
-                string.Format("sudo cgset -r memory.limit_in_bytes={0} -r memory.swappiness=0 {1}", task.MemoryLimit + 750000, submissionId).Bash();
+                $"sudo cgset -r memory.limit_in_bytes={pMemLimitB} -r memory.swappiness=0 {submissionId}".Bash();
 
                 // timeout value = 2 * task time limit
                 float timeoutS = (task.TimeLimit << 1) / 1000.0f;
@@ -206,7 +208,7 @@ namespace OnlineJudgeApi.Controllers
                 // prepare execution command string
                 // timeout uses a 2 * time limit value because it measures real time and not cpu time
                 // we let the process run longer and only after inspect its cpu time from /usr/bin/time output
-                string escapedExecCmd = string.Format("/usr/bin/time -p -o {0} sudo timeout --preserve-status {1} sudo cgexec -g memory:{2} chroot {3} ./{2}", timeOutputFilePath, timeoutS, submissionId, rootDir).Replace("\"", "\\\"");
+                string escapedExecCmd = $"/usr/bin/time -p -o {timeOutputFilePath} sudo timeout --preserve-status {timeoutS} sudo cgexec -g memory:{submissionId} chroot {rootDir} ./{submissionId}".Replace("\"", "\\\"");
 
                 bool correctSoFar = true;
 
@@ -241,8 +243,8 @@ namespace OnlineJudgeApi.Controllers
                         q.WaitForExit();
 
                         // fetch and check if execution CPU time actually meets the limit
-                        double userCpuTimeS = double.Parse(string.Format("grep -oP '(?<=user ).*' {0}", timeOutputFilePath).Bash());
-                        double sysCpuTimeS = double.Parse(string.Format("grep -oP '(?<=sys ).*' {0}", timeOutputFilePath).Bash());
+                        double userCpuTimeS = double.Parse($"grep -oP '(?<=user ).*' {timeOutputFilePath}".Bash());
+                        double sysCpuTimeS = double.Parse($"grep -oP '(?<=sys ).*' {timeOutputFilePath}".Bash());
                         int totalCpuTimeMs = (int)((userCpuTimeS + sysCpuTimeS) * 1000 + 0.5);
                         maxTimeMs = Math.Max(maxTimeMs, totalCpuTimeMs);
 
@@ -312,10 +314,10 @@ namespace OnlineJudgeApi.Controllers
                 }
 
                 // get max memory used
-                string maxMemoryUsed = string.Format("cgget -n -v -r memory.max_usage_in_bytes {0}", submissionId).Bash().TrimEnd('\r', '\n'); ;
+                string maxMemoryUsed = $"cgget -n -v -r memory.max_usage_in_bytes {submissionId}".Bash().TrimEnd('\r', '\n'); ;
 
                 // delete cgroup
-                string.Format("sudo cgdelete -g memory:{0}", submissionId).Bash();
+                $"sudo cgdelete -g memory:{submissionId}".Bash();
 
                 submission.ExecutionTime = maxTimeMs; // Set submission execution time as max out of all test cases
                 submission.ExecutionMemory = Int32.Parse(maxMemoryUsed); // Set submission execution memory as max out of all test cases

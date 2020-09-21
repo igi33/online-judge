@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using AutoMapper;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OnlineJudgeApi.Dtos;
@@ -16,7 +13,7 @@ namespace OnlineJudgeApi.Controllers
     public class TagController : ControllerBase
     {
         private readonly DataContext _context;
-        private IMapper mapper;
+        private readonly IMapper mapper;
 
         public TagController(DataContext context, IMapper mapper)
         {
@@ -46,7 +43,7 @@ namespace OnlineJudgeApi.Controllers
 
             TagDto dto = mapper.Map<TagDto>(tag);
 
-            return dto;
+            return Ok(dto);
         }
     }
 }

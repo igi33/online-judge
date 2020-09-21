@@ -20,8 +20,8 @@ namespace OnlineJudgeApi.Controllers
     [Route("api/[controller]")]
     public class UserController : ControllerBase
     {
-        private IUserService userService;
-        private IMapper mapper;
+        private readonly IUserService userService;
+        private readonly IMapper mapper;
         private readonly AppSettings appSettings;
 
         public UserController(
@@ -46,7 +46,7 @@ namespace OnlineJudgeApi.Controllers
             }
 
             var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(appSettings.Secret);
+            var key = Encoding.ASCII.GetBytes(appSettings.JwtSecret);
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(new Claim[]
@@ -121,7 +121,7 @@ namespace OnlineJudgeApi.Controllers
             User user = mapper.Map<User>(userDto);
 
             // Fetch current user id
-            int userId = int.Parse((User.Identity as ClaimsIdentity).FindFirst(ClaimTypes.Name).Value);
+            int userId = int.Parse(User.FindFirst(JwtRegisteredClaimNames.Sub).Value);
 
             // Return Unauthorized if current user doesn't match model user
             if (id != userId)
@@ -145,7 +145,7 @@ namespace OnlineJudgeApi.Controllers
         [HttpDelete("{id}")]
         public IActionResult DeleteUser(int id)
         {
-            int userId = int.Parse((User.Identity as ClaimsIdentity).FindFirst(ClaimTypes.Name).Value);
+            int userId = int.Parse(User.FindFirst(JwtRegisteredClaimNames.Sub).Value);
 
             if (userId != id)
             {

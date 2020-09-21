@@ -53,7 +53,9 @@ namespace OnlineJudgeApi
             services.AddAutoMapper();
 
             // configure jwt authentication
-            var key = Encoding.ASCII.GetBytes(appSettings.Secret);
+            JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
+
+            var key = Encoding.ASCII.GetBytes(appSettings.JwtSecret);
             services.AddAuthentication(x =>
             {
                 x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -85,7 +87,8 @@ namespace OnlineJudgeApi
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey = new SymmetricSecurityKey(key),
                     ValidateIssuer = false,
-                    ValidateAudience = false
+                    ValidateAudience = false,
+                    ClockSkew = TimeSpan.Zero, // token will expire exactly at expiration time (instead of 5 minutes later)
                 };
             });
 

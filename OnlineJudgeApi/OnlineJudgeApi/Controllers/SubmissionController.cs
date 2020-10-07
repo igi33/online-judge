@@ -314,7 +314,7 @@ namespace OnlineJudgeApi.Controllers
                 }
 
                 // get max memory used
-                string maxMemoryUsed = $"cgget -n -v -r memory.max_usage_in_bytes {submissionId}".Bash().TrimEnd('\r', '\n'); ;
+                string maxMemoryUsed = $"cgget -n -v -r memory.max_usage_in_bytes {submissionId}".Bash().TrimEnd('\r', '\n');
 
                 // delete cgroup
                 $"sudo cgdelete -g memory:{submissionId}".Bash();

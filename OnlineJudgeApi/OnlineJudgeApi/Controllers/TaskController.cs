@@ -54,7 +54,10 @@ namespace OnlineJudgeApi.Controllers
         [HttpGet("solvedby/{userId}")]
         public async Task<ActionResult<IEnumerable<TaskDto>>> GetSolvedByUser(int userId, int limit = 0, int offset = 0)
         {
-            var query = _context.Submissions.Where(s => s.UserId == userId && s.Status.Equals("AC")).Include(s => s.Task).OrderBy(s => s.Id);
+            var query = _context.Submissions.Where(s => s.UserId == userId && s.Status.Equals("AC"))
+                .Include(s => s.Task)
+                .ThenInclude(t => t.User)
+                .OrderBy(s => s.Id);
 
             List<Submission> acceptedSubmissionsByUser;
             if (limit != 0)
@@ -201,7 +204,7 @@ namespace OnlineJudgeApi.Controllers
                 return NotFound();
             }
 
-            if (!taskDto.Name.Equals(task.Name) && await _context.Tasks.AnyAsync(t => t.Name.Equals(taskDto.Name)))
+            if (await _context.Tasks.AnyAsync(t => t.Id != id && t.Name.ToLower().Equals(taskDto.Name.ToLower())))
             {
                 return BadRequest(new { Message = "There is already a task called " + taskDto.Name });
             }

@@ -163,174 +163,59 @@ namespace OnlineJudgeApi.Controllers
             _context.Submissions.Add(submission);
             await _context.SaveChangesAsync();
 
-            string cmdUsername = "whoami".Bash().Trim();
-            string rootDir = $"/home/{cmdUsername}/executionroot/";
-            string submissionId = submission.Id.ToString();
-            string sourceFileName = $"{submissionId}.{lang.Extension}";
+            string executionRootDir = Grader.GetExecutionRootDir();
 
-            string binaryFilePath = $"{rootDir}{submissionId}";
-            string sourceFilePath = $"{rootDir}{sourceFileName}";
-            string timeOutputFilePath = $"{rootDir}time{submissionId}.txt";
+            string sourceFileName = $"{submission.Id}.{lang.Extension}";
+            string binaryFileName = submission.Id.ToString();
+
+            string sourceFilePath = $"{executionRootDir}{sourceFileName}";
+            string binaryFilePath = $"{executionRootDir}{binaryFileName}";
 
             // Create file from source code inside rootDir
             System.IO.File.WriteAllText(sourceFilePath, submissionDto.SourceCode);
 
             // Compile submission
-            BashExecutor executor = new BashExecutor($"{lang.CompilerFileName} {string.Format(lang.CompileCmd, binaryFilePath)}");
-            executor.Execute();
+            CompilationOutput co = Grader.Compile(lang, binaryFileName);
 
-            if (executor.ExitCode != 0)
+            if (co.ExitCode != 0)
             {
                 // Compile error
                 submission.Status = "CE"; // Mark submission status as Compile Error
-                submissionDto.Message = executor.Error; // Set message as compile error message
+                submissionDto.Message = co.Message; // Set message as compile error message
             }
             else
             {
                 // Compile success
                 submission.Status = "AC"; // Submission status will stay accepted if all test cases pass
                 int maxTimeMs = 0; // Track max execution time of test cases
-
-                // create cgroup
-                $"sudo cgcreate -g memory:{submissionId}".Bash();
-
-                // increase the limit a bit due to overhead of calling multiple commands in one
-                int pMemLimitB = task.MemoryLimit + 750000;
-                // set minimal limit for cgroup
-                pMemLimitB = Math.Max(pMemLimitB, 1150000);
-
-                // set memory limit a bit higher than task parameter
-                $"sudo cgset -r memory.limit_in_bytes={pMemLimitB} -r memory.swappiness=0 {submissionId}".Bash();
-
-                // timeout value = 2 * task time limit
-                float timeoutS = (task.TimeLimit << 1) / 1000.0f;
-
-                // prepare execution command string
-                // timeout uses a 2 * time limit value because it measures real time and not cpu time
-                // we let the process run longer and only after inspect its cpu time from /usr/bin/time output
-                string escapedExecCmd = $"/usr/bin/time -p -o {timeOutputFilePath} sudo timeout --preserve-status {timeoutS} sudo cgexec -g memory:{submissionId} chroot {rootDir} ./{submissionId}".Replace("\"", "\\\"");
+                int maxMemoryB = 0; // Track max execution memory of test cases
 
                 bool correctSoFar = true;
-
                 for (int i = 0; correctSoFar && i < task.TestCases.Count; ++i)
                 {
                     TestCase tc = task.TestCases.ElementAt(i);
-                    using (Process q = new Process())
-                    {
-                        string output = "";
 
-                        q.StartInfo.FileName = "/bin/bash";
-                        q.StartInfo.Arguments = $"-c \"{escapedExecCmd}\"";
-                        q.StartInfo.RedirectStandardInput = true;
-                        q.StartInfo.RedirectStandardOutput = true;
-                        q.StartInfo.CreateNoWindow = false;
-                        q.StartInfo.UseShellExecute = false;
-                        q.OutputDataReceived += new DataReceivedEventHandler((sender, e) =>
-                        {
-                            if (!string.IsNullOrEmpty(e.Data))
-                            {
-                                output += e.Data + "\n";
-                            }
-                        });
-                        
-                        q.Start();
-                        q.BeginOutputReadLine();
+                    Grade grade = Grader.Grade(binaryFileName, tc.Input, tc.Output, task.TimeLimit, task.MemoryLimit);
 
-                        StreamWriter inputWriter = q.StandardInput;
-                        inputWriter.Write(tc.Input);
-                        inputWriter.Close();
+                    maxTimeMs = Math.Max(maxTimeMs, grade.ExecutionTime);
+                    maxMemoryB = Math.Max(maxMemoryB, grade.ExecutionMemory);
+                    submission.Status = grade.Status;
 
-                        q.WaitForExit();
-
-                        // fetch and check if execution CPU time actually meets the limit
-                        double userCpuTimeS = double.Parse($"grep -oP '(?<=user ).*' {timeOutputFilePath}".Bash());
-                        double sysCpuTimeS = double.Parse($"grep -oP '(?<=sys ).*' {timeOutputFilePath}".Bash());
-                        int totalCpuTimeMs = (int)((userCpuTimeS + sysCpuTimeS) * 1000 + 0.5);
-                        maxTimeMs = Math.Max(maxTimeMs, totalCpuTimeMs);
-
-                        if (q.ExitCode != 0)
-                        {
-                            if (q.ExitCode == 137)
-                            {
-                                // cgroup sent SIGKILL
-                                // the process exited with code 137
-                                // meaning the memory limit was breached
-                                submission.Status = "MLE";
-                            }
-                            else if (q.ExitCode == 143 || totalCpuTimeMs > task.TimeLimit)
-                            {
-                                // timeout sent SIGTERM
-                                // the process exited with code 137
-                                // meaning the time limit was definitely breached
-                                // OR
-                                // actual CPU time breaches the limit
-                                submission.Status = "TLE";
-                                maxTimeMs = task.TimeLimit;
-                            }
-                            else
-                            {
-                                // Runtime error
-                                // Rejected
-                                submission.Status = "RTE";
-                            }
-                            correctSoFar = false;
-                        }
-                        else
-                        {
-                            // Successfully executed
-
-                            // Check if submission output matches the expected output of test case
-                            string[] outputLines = output.Trim().Split(
-                                new[] { "\r\n", "\r", "\n" },
-                                StringSplitOptions.None
-                            );
-                            string[] tcOutputLines = tc.Output.Trim().Split(
-                                new[] { "\r\n", "\r", "\n" },
-                                StringSplitOptions.None
-                            );
-
-                            if (outputLines.Length != tcOutputLines.Length)
-                            {
-                                correctSoFar = false;
-                            }
-
-                            int idx = 0;
-                            while (correctSoFar && idx < outputLines.Length)
-                            {
-                                if (!outputLines.ElementAt(idx).Equals(tcOutputLines.ElementAt(idx)))
-                                {
-                                    correctSoFar = false;
-                                }
-                                ++idx;
-                            }
-
-                            if (!correctSoFar)
-                            {
-                                // Mismatch, set status as rejected
-                                submission.Status = "RJ";
-                            }
-                        }
-                    }
+                    correctSoFar = grade.Status.Equals("AC");
                 }
 
-                // get max memory used
-                string maxMemoryUsed = $"cgget -n -v -r memory.max_usage_in_bytes {submissionId}".Bash().TrimEnd('\r', '\n');
-
-                // delete cgroup
-                $"sudo cgdelete -g memory:{submissionId}".Bash();
-
                 submission.ExecutionTime = maxTimeMs; // Set submission execution time as max out of all test cases
-                submission.ExecutionMemory = Int32.Parse(maxMemoryUsed); // Set submission execution memory as max out of all test cases
+                submission.ExecutionMemory = maxMemoryB; // Set submission execution memory as max out of all test cases
 
+                // Delete binary file
                 System.IO.File.Delete(binaryFilePath);
             }
 
             // Edit submission object status and stats
             await _context.SaveChangesAsync();
 
-            // Delete created files
+            // Delete source file
             System.IO.File.Delete(sourceFilePath);
-            System.IO.File.Delete(timeOutputFilePath);
 
             // Prepare response DTO
             SubmissionDto responseDto = mapper.Map<SubmissionDto>(submission);

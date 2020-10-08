@@ -1,7 +1,7 @@
 # Online Judge
 
 ## Project Idea
-A simple online judge platform which grades program solutions automatically.
+A simple online judge platform which grades algorithmic task solutions automatically.
 
 ## Features
 - Solve algorithmic problems in given time and memory limits
@@ -26,8 +26,20 @@ $ sudo visudo /etc/sudoers
 yourLinuxUsername ALL = (root) NOPASSWD: /usr/bin/cgcreate,/usr/bin/cgset,/usr/bin/cgexec,/usr/bin/cgdelete
 yourLinuxUsername ALL = (root) NOPASSWD: /usr/bin/timeout
 ```
-3. Make a directory executionroot to serve as a chroot jail from which the task solutions will be executed
-4. Copy **/bin/bash** and its dependenciess (using ldd and cp) into executionroot
+3. Make a directory **executionroot** in your Linux user's home directory (~) to serve as a chroot jail from which the task solutions will be executed
+4. Copy **/bin/bash** and its dependenciess (using ldd and cp) into **~/executionroot/** with these commands:
+```console
+$ chr=~/executionroot
+```
+```console
+$ cp -v --parents /bin/bash "${chr}"
+```
+```console
+$ list="$(ldd /bin/bash | egrep -o '/lib.*\.[0-9]')"
+```
+```console
+for i in $list; do cp -v --parents "$i" "${chr}"; done
+```
 
 ## Frameworks and Requirements
 #### Back End: ASP.NET Core - A C# Web API Framework by Microsoft
@@ -40,7 +52,7 @@ Versions used:
 - MySQL 8.0.11
 
 #### Front End: Angular - A Typescript Front End Web Framework by Google
-...
+[An Angular front end web app for an online judge REST API](https://github.com/igi33/online-judge-angular-app)
 
 #### Front End: WPF - A C# Front End Framework for Windows by Microsoft
 .NET Framework version used: 4.7.2

@@ -1,4 +1,5 @@
 ﻿using OnlineJudgeApi.Entities;
+using OnlineJudgeApi.Dtos;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -16,7 +17,7 @@ namespace OnlineJudgeApi.Helpers
         }
 
         // Compile an already existing source code file into a binary file with the name supplied
-        public static CompilationOutput Compile(ComputerLanguage lang, string binaryFileName)
+        public static CompilationOutputDto Compile(ComputerLanguage lang, string binaryFileName)
         {
             string rootDir = GetExecutionRootDir();
             string binaryFilePath = $"{rootDir}{binaryFileName}";
@@ -24,7 +25,7 @@ namespace OnlineJudgeApi.Helpers
             BashExecutor executor = new BashExecutor($"{lang.CompilerFileName} {string.Format(lang.CompileCmd, binaryFilePath)}");
             executor.Execute();
 
-            return new CompilationOutput
+            return new CompilationOutputDto
             {
                 ExitCode = (int)executor.ExitCode,
                 Message = executor.Error ?? "",
@@ -32,7 +33,7 @@ namespace OnlineJudgeApi.Helpers
         }
 
         // Grade a single test case with an already compiled source code file (binaryFileName) and return the results
-        public static Grade Grade(string binaryFileName, string input, string expectedOutput, int timeLimit = 0, int memoryLimit = 0)
+        public static GradeDto Grade(string binaryFileName, string input, string expectedOutput, int timeLimit = 0, int memoryLimit = 0)
         {
             string rootDir = GetExecutionRootDir();
             string timeOutputFilePath = $"{rootDir}time{binaryFileName}.txt";
@@ -47,18 +48,20 @@ namespace OnlineJudgeApi.Helpers
             $"sudo cgset -r memory.limit_in_bytes={pMemLimitB} -r memory.swappiness=0 {binaryFileName}".Bash();
 
             // timeout uses a longer time limit value because it measures real time and not cpu time.
-            // we let the process run longer just in case, and after we inspect its cpu time from /usr/bin/time output
+            // we let the process run longer just in case, and after we inspect its cpu time from /usr/bin/time output.
+            // timeout of zero means the associated timeout is disabled.
             float timeoutS = (timeLimit << 2) / 1000.0f;
 
             // prepare execution command string
             string escapedExecCmd = $"/usr/bin/time -p -o {timeOutputFilePath} sudo timeout --preserve-status {timeoutS} sudo cgexec -g memory:{binaryFileName} chroot {rootDir} ./{binaryFileName}".Replace("\"", "\\\"");
 
             // set initial return values
-            Grade grade = new Grade
+            GradeDto grade = new GradeDto
             {
                 Status = "AC", // will stay accepted if test case passes
                 ExecutionTime = 0,
                 ExecutionMemory = 0,
+                Output = "",
             };
 
             using (Process q = new Process())
@@ -123,6 +126,7 @@ namespace OnlineJudgeApi.Helpers
                 else
                 {
                     // Successfully executed
+                    grade.Output = output;
 
                     bool correctSoFar = true;
 

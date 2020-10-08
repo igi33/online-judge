@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IdentityModel.Tokens.Jwt;
-using System.IO;
 using System.Linq;
-using System.Security.Claims;
 using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
@@ -175,7 +172,7 @@ namespace OnlineJudgeApi.Controllers
             System.IO.File.WriteAllText(sourceFilePath, submissionDto.SourceCode);
 
             // Compile submission
-            CompilationOutput co = Grader.Compile(lang, binaryFileName);
+            CompilationOutputDto co = Grader.Compile(lang, binaryFileName);
 
             if (co.ExitCode != 0)
             {
@@ -186,7 +183,7 @@ namespace OnlineJudgeApi.Controllers
             else
             {
                 // Compile success
-                submission.Status = "AC"; // Submission status will stay accepted if all test cases pass
+                submission.Status = "AC"; // Submission status will stay accepted if all test cases pass (or if there aren't any TCs)
                 int maxTimeMs = 0; // Track max execution time of test cases
                 int maxMemoryB = 0; // Track max execution memory of test cases
 
@@ -195,7 +192,7 @@ namespace OnlineJudgeApi.Controllers
                 {
                     TestCase tc = task.TestCases.ElementAt(i);
 
-                    Grade grade = Grader.Grade(binaryFileName, tc.Input, tc.Output, task.TimeLimit, task.MemoryLimit);
+                    GradeDto grade = Grader.Grade(binaryFileName, tc.Input, tc.Output, task.TimeLimit, task.MemoryLimit);
 
                     maxTimeMs = Math.Max(maxTimeMs, grade.ExecutionTime);
                     maxMemoryB = Math.Max(maxMemoryB, grade.ExecutionMemory);

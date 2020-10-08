@@ -107,8 +107,8 @@ CREATE TABLE `tasktags` (
 CREATE TABLE `testcases` (
   `id` int(10) UNSIGNED NOT NULL,
   `taskid` int(10) UNSIGNED NOT NULL,
-  `input` text COLLATE utf8mb4_general_ci NOT NULL,
-  `output` text COLLATE utf8mb4_general_ci NOT NULL
+  `input` longtext COLLATE utf8mb4_general_ci NOT NULL,
+  `output` longtext COLLATE utf8mb4_general_ci NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------

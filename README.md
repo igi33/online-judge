@@ -38,7 +38,7 @@ $ cp -v --parents /bin/bash "${chr}"
 $ list="$(ldd /bin/bash | egrep -o '/lib.*\.[0-9]')"
 ```
 ```console
-for i in $list; do cp -v --parents "$i" "${chr}"; done
+$ for i in $list; do cp -v --parents "$i" "${chr}"; done
 ```
 
 ## Frameworks and Requirements

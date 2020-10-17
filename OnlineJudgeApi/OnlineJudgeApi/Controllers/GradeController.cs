@@ -24,7 +24,7 @@ namespace OnlineJudgeApi.Controllers
 
         // POST: api/Grade
         [HttpPost]
-        public async Task<ActionResult<GradeDto>> Grade(int taskId, [FromBody] GradeSubmissionDto gradeSubmissionDto)
+        public async Task<ActionResult<GradeDto>> Grade([FromBody] GradeSubmissionDto gradeSubmissionDto)
         {
             // Get language info
             ComputerLanguage lang = await _context.ComputerLanguages.FindAsync(gradeSubmissionDto.LangId);
@@ -45,21 +45,33 @@ namespace OnlineJudgeApi.Controllers
             // Create file from source code inside rootDir
             System.IO.File.WriteAllText(sourceFilePath, gradeSubmissionDto.SourceCode);
 
-            // Compile submission
-            CompilationOutputDto co = Grader.Compile(lang, binaryFileName);
-
             GradeDto result = new GradeDto(); // this will be returned by the method
 
-            if (co.ExitCode != 0)
+            bool readyToRun = true;
+
+            // Check if compiled language
+            if (!string.IsNullOrEmpty(lang.CompileCmd))
             {
-                // Compile error
-                result.Status = "CE"; // Mark status as Compile Error
-                result.Message = co.Message; // Set message as compile error message
+                // Compile submission
+                CompilationOutputDto co = Grader.Compile(lang, sourceFileName, binaryFileName);
+
+                if (co.ExitCode != 0)
+                {
+                    // Compile error
+                    result.Status = "CE"; // Mark status as Compile Error
+                    result.Error = co.Error; // Set message as compile error message
+                    readyToRun = false;
+                }
             }
-            else
+            
+            if (readyToRun)
             {
-                // Compile success
-                result = Grader.Grade(binaryFileName, gradeSubmissionDto.Input, gradeSubmissionDto.ExpectedOutput, gradeSubmissionDto.TimeLimit, gradeSubmissionDto.MemoryLimit);
+                // Compiled successfully or interpreted language, so we're ready to run the solution
+
+                string fileName = string.IsNullOrEmpty(lang.CompileCmd) ? sourceFileName : binaryFileName;
+
+                // Grade solution
+                result = Grader.Grade(lang, fileName, gradeSubmissionDto.Input, gradeSubmissionDto.ExpectedOutput, gradeSubmissionDto.TimeLimit, gradeSubmissionDto.MemoryLimit);
 
                 // Delete binary file
                 System.IO.File.Delete(binaryFilePath);

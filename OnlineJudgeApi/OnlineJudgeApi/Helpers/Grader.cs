@@ -16,44 +16,46 @@ namespace OnlineJudgeApi.Helpers
             return $"/home/{cmdUsername}/executionroot/";
         }
 
-        // Compile an already existing source code file into a binary file with the name supplied
-        public static CompilationOutputDto Compile(ComputerLanguage lang, string binaryFileName)
+        // Compile a source code file into a binary file
+        public static CompilationOutputDto Compile(ComputerLanguage lang, string sourceFileName, string binaryFileName)
         {
             string rootDir = GetExecutionRootDir();
+            string sourceFilePath = $"{rootDir}{sourceFileName}";
             string binaryFilePath = $"{rootDir}{binaryFileName}";
+            string compileCommand = $"{lang.CompilerFileName} {string.Format(lang.CompileCmd, sourceFilePath, binaryFilePath)}";
 
-            BashExecutor executor = new BashExecutor($"{lang.CompilerFileName} {string.Format(lang.CompileCmd, binaryFilePath)}");
+            BashExecutor executor = new BashExecutor(compileCommand);
             executor.Execute();
 
             return new CompilationOutputDto
             {
                 ExitCode = (int)executor.ExitCode,
-                Message = executor.Error ?? "",
+                Error = !string.IsNullOrEmpty(executor.Error) ? executor.Error.Replace(sourceFilePath, "") : "",
             };
         }
 
-        // Grade a single test case with an already compiled source code file (binaryFileName) and return the results
-        public static GradeDto Grade(string binaryFileName, string input, string expectedOutput, int timeLimit = 0, int memoryLimit = 0)
+        // Run program, grade a single test case and return the results
+        public static GradeDto Grade(ComputerLanguage lang, string fileName, string input, string expectedOutput, int timeLimitMs = 0, int memoryLimitB = 0)
         {
             string rootDir = GetExecutionRootDir();
-            string timeOutputFilePath = $"{rootDir}time{binaryFileName}.txt";
+            string timeOutputFilePath = $"{rootDir}time{fileName}.txt";
 
             // create cgroup
-            $"sudo cgcreate -g memory:{binaryFileName}".Bash();
+            $"sudo cgcreate -g memory,pids:{fileName}".Bash();
 
             // increase the initial memory limit for the cgroup a bit due to overhead and also set a minimum
-            int pMemLimitB = Math.Max(memoryLimit + 750000, 1150000);
+            int pMemLimitB = Math.Max(memoryLimitB + 750000, 1150000);
 
-            // set memory limit a bit higher than task parameter
-            $"sudo cgset -r memory.limit_in_bytes={pMemLimitB} -r memory.swappiness=0 {binaryFileName}".Bash();
+            // set memory and max process limit
+            $"sudo cgset -r memory.limit_in_bytes={pMemLimitB} -r memory.swappiness=0 -r pids.max=1 {fileName}".Bash();
 
             // timeout uses a longer time limit value because it measures real time and not cpu time.
             // we let the process run longer just in case, and after we inspect its cpu time from /usr/bin/time output.
             // timeout of zero means the associated timeout is disabled.
-            float timeoutS = (timeLimit << 2) / 1000.0f;
+            float timeoutS = (timeLimitMs << 2) / 1000.0f;
 
             // prepare execution command string
-            string escapedExecCmd = $"/usr/bin/time -p -o {timeOutputFilePath} sudo timeout --preserve-status {timeoutS} sudo cgexec -g memory:{binaryFileName} chroot {rootDir} ./{binaryFileName}".Replace("\"", "\\\"");
+            string escapedExecCmd = $"/usr/bin/time -p -o {timeOutputFilePath} sudo timeout --preserve-status {timeoutS} sudo cgexec -g memory,pids:{fileName} chroot --userspec=coderunner:no-network {rootDir} {string.Format(lang.ExecuteCmd, fileName)}".Replace("\"", "\\\"");
 
             // set initial return values
             GradeDto grade = new GradeDto
@@ -62,17 +64,20 @@ namespace OnlineJudgeApi.Helpers
                 ExecutionTime = 0,
                 ExecutionMemory = 0,
                 Output = "",
+                Error = "",
             };
 
             using (Process q = new Process())
             {
                 string output = "";
+                string error = "";
 
                 q.StartInfo.FileName = "/bin/bash";
                 q.StartInfo.Arguments = $"-c \"{escapedExecCmd}\"";
                 q.StartInfo.RedirectStandardInput = true;
                 q.StartInfo.RedirectStandardOutput = true;
-                q.StartInfo.CreateNoWindow = false;
+                q.StartInfo.RedirectStandardError = true;
+                q.StartInfo.CreateNoWindow = true;
                 q.StartInfo.UseShellExecute = false;
                 q.OutputDataReceived += new DataReceivedEventHandler((sender, e) =>
                 {
@@ -81,9 +86,17 @@ namespace OnlineJudgeApi.Helpers
                         output += e.Data + "\n";
                     }
                 });
+                q.ErrorDataReceived += new DataReceivedEventHandler((sender, e) =>
+                {
+                    if (!string.IsNullOrEmpty(e.Data))
+                    {
+                        error += e.Data + "\n";
+                    }
+                });
 
                 q.Start();
                 q.BeginOutputReadLine();
+                q.BeginErrorReadLine();
 
                 StreamWriter inputWriter = q.StandardInput;
                 inputWriter.Write(input);
@@ -99,6 +112,9 @@ namespace OnlineJudgeApi.Helpers
 
                 if (q.ExitCode != 0)
                 {
+                    // Unsuccessfully executed
+                    grade.Error = error;
+
                     if (q.ExitCode == 137)
                     {
                         // cgroup sent SIGKILL
@@ -106,7 +122,7 @@ namespace OnlineJudgeApi.Helpers
                         // meaning the memory limit was breached
                         grade.Status = "MLE";
                     }
-                    else if (q.ExitCode == 143 || totalCpuTimeMs > timeLimit)
+                    else if (q.ExitCode == 143 || totalCpuTimeMs > timeLimitMs)
                     {
                         // timeout sent SIGTERM
                         // the process exited with code 137
@@ -114,7 +130,7 @@ namespace OnlineJudgeApi.Helpers
                         // OR
                         // actual CPU time breaches the limit
                         grade.Status = "TLE";
-                        grade.ExecutionTime = timeLimit;
+                        grade.ExecutionTime = timeLimitMs;
                     }
                     else
                     {
@@ -128,9 +144,9 @@ namespace OnlineJudgeApi.Helpers
                     // Successfully executed
                     grade.Output = output;
 
+                    // Check if submission output matches the expected output of test case
                     bool correctSoFar = true;
 
-                    // Check if submission output matches the expected output of test case
                     string[] outputLines = output.Trim().Split(
                         new[] { "\r\n", "\r", "\n" },
                         StringSplitOptions.None
@@ -157,18 +173,18 @@ namespace OnlineJudgeApi.Helpers
 
                     if (!correctSoFar)
                     {
-                        // Mismatch, set status as rejected
-                        grade.Status = "RJ";
+                        // Mismatch, set status as wrong answer
+                        grade.Status = "WA";
                     }
                 }
             }
 
             // get memory amount used
-            string maxMemoryUsed = $"cgget -n -v -r memory.max_usage_in_bytes {binaryFileName}".Bash().TrimEnd('\r', '\n');
+            string maxMemoryUsed = $"cgget -n -v -r memory.max_usage_in_bytes {fileName}".Bash().TrimEnd('\r', '\n');
             grade.ExecutionMemory = Int32.Parse(maxMemoryUsed);
 
             // delete cgroup
-            $"sudo cgdelete -g memory:{binaryFileName}".Bash();
+            $"sudo cgdelete -g memory,pids:{fileName}".Bash();
             
             // delete time output file
             System.IO.File.Delete(timeOutputFilePath);

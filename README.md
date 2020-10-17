@@ -11,7 +11,7 @@ A simple online judge platform which grades algorithmic task solutions automatic
 - User profiles showing solved tasks
 
 ## Server Requirements
-The operating system requirement for the server is Linux because of its nifty features. I have used Debian-based Ubuntu 18.04 for testing but it's probably possible to use other Linux distributions as well.
+The operating system requirement for the server is Linux because of its nifty features. I have used Debian-based Ubuntu 18.04 for testing but it's probably possible to use other Linux distributions as well, with few to none changes.
 
 #### Server configuration
 1. Install cgroup tools for manipulation of cgroups (cgcreate, cgset, cgget, cgexec, cgdelete)
@@ -20,14 +20,14 @@ $ sudo apt install cgroup-tools
 ```
 2. Add commands in the **/etc/sudoers** file to be usable as sudo without a password (required for the system to be autonomous). Execute the following command and insert the below two lines at the end of the file:
 ```console
-$ sudo visudo /etc/sudoers
+$ sudo visudo -f /etc/sudoers
 ```
 ```console
 yourLinuxUsername ALL = (root) NOPASSWD: /usr/bin/cgcreate,/usr/bin/cgset,/usr/bin/cgexec,/usr/bin/cgdelete
 yourLinuxUsername ALL = (root) NOPASSWD: /usr/bin/timeout
 ```
 3. Make a directory **executionroot** in your Linux user's home directory (~) to serve as a chroot jail from which the task solutions will be executed
-4. Copy **/bin/bash** and its dependenciess (using ldd and cp) into **~/executionroot/** with these commands:
+4. Copy **/bin/bash** and its dependencies (using ldd and cp) into **~/executionroot/** with these commands:
 ```console
 $ chr=~/executionroot
 ```

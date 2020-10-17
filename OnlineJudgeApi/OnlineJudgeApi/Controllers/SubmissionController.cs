@@ -171,19 +171,29 @@ namespace OnlineJudgeApi.Controllers
             // Create file from source code inside rootDir
             System.IO.File.WriteAllText(sourceFilePath, submissionDto.SourceCode);
 
-            // Compile submission
-            CompilationOutputDto co = Grader.Compile(lang, binaryFileName);
+            bool readyToRun = true;
 
-            if (co.ExitCode != 0)
+            // Check if compiled language
+            if (!string.IsNullOrEmpty(lang.CompileCmd))
             {
-                // Compile error
-                submission.Status = "CE"; // Mark submission status as Compile Error
-                submissionDto.Message = co.Message; // Set message as compile error message
+                // Compile submission
+                CompilationOutputDto co = Grader.Compile(lang, sourceFileName, binaryFileName);
+
+                if (co.ExitCode != 0)
+                {
+                    // Compile error
+                    submission.Status = "CE"; // Mark status as Compile Error
+                    submissionDto.Message = co.Error; // Set message as compile error message
+                    readyToRun = false;
+                }
             }
-            else
+
+            if (readyToRun)
             {
-                // Compile success
+                // Compiled successfully or interpreted language, so we're ready to run the solution
+
                 submission.Status = "AC"; // Submission status will stay accepted if all test cases pass (or if there aren't any TCs)
+                string fileName = string.IsNullOrEmpty(lang.CompileCmd) ? sourceFileName : binaryFileName;
                 int maxTimeMs = 0; // Track max execution time of test cases
                 int maxMemoryB = 0; // Track max execution memory of test cases
 
@@ -192,7 +202,7 @@ namespace OnlineJudgeApi.Controllers
                 {
                     TestCase tc = task.TestCases.ElementAt(i);
 
-                    GradeDto grade = Grader.Grade(binaryFileName, tc.Input, tc.Output, task.TimeLimit, task.MemoryLimit);
+                    GradeDto grade = Grader.Grade(lang, fileName, tc.Input, tc.Output, task.TimeLimit, task.MemoryLimit);
 
                     maxTimeMs = Math.Max(maxTimeMs, grade.ExecutionTime);
                     maxMemoryB = Math.Max(maxMemoryB, grade.ExecutionMemory);
@@ -204,8 +214,11 @@ namespace OnlineJudgeApi.Controllers
                 submission.ExecutionTime = maxTimeMs; // Set submission execution time as max out of all test cases
                 submission.ExecutionMemory = maxMemoryB; // Set submission execution memory as max out of all test cases
 
-                // Delete binary file
-                System.IO.File.Delete(binaryFilePath);
+                // Delete binary file if compiled
+                if (!string.IsNullOrEmpty(lang.CompileCmd))
+                {
+                    System.IO.File.Delete(binaryFilePath);
+                }
             }
 
             // Edit submission object status and stats

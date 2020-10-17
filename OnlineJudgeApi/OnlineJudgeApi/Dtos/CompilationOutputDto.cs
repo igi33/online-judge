@@ -3,6 +3,6 @@
     public class CompilationOutputDto
     {
         public int ExitCode { get; set; }
-        public string Message { get; set; }
+        public string Error { get; set; }
     }
 }

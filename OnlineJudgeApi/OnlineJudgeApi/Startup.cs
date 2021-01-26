@@ -13,9 +13,9 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
 using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
-using System.Security.Claims;
 using System.Linq;
 using System.IdentityModel.Tokens.Jwt;
+using Microsoft.Extensions.Hosting;
 
 namespace OnlineJudgeApi
 {
@@ -49,8 +49,8 @@ namespace OnlineJudgeApi
                 }
             ));
 
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
-            services.AddAutoMapper();
+            services.AddMvc(options => options.EnableEndpointRouting = false).SetCompatibilityVersion(CompatibilityVersion.Version_3_0);
+            services.AddAutoMapper(typeof(Startup));
 
             // configure jwt authentication
             JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
@@ -97,7 +97,7 @@ namespace OnlineJudgeApi
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
             {

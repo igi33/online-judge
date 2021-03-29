@@ -16,6 +16,8 @@ using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
 using System.Linq;
 using System.IdentityModel.Tokens.Jwt;
 using Microsoft.Extensions.Hosting;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
+using Microsoft.AspNetCore.Http.Features;
 
 namespace OnlineJudgeApi
 {
@@ -51,6 +53,8 @@ namespace OnlineJudgeApi
 
             services.AddMvc(options => options.EnableEndpointRouting = false).SetCompatibilityVersion(CompatibilityVersion.Version_3_0);
             services.AddAutoMapper(typeof(Startup));
+
+            services.AddControllers().AddNewtonsoftJson();
 
             // configure jwt authentication
             JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
@@ -94,6 +98,17 @@ namespace OnlineJudgeApi
 
             // configure DI for application services
             services.AddScoped<IUserService, UserService>();
+            
+            services.Configure<FormOptions>(options => 
+            {
+                options.ValueLengthLimit = int.MaxValue;
+                options.MultipartBodyLengthLimit = int.MaxValue; // if don't set default value is: 128 MB
+                options.MultipartHeadersLengthLimit = int.MaxValue;
+            });
+            services.Configure<KestrelServerOptions>(options =>
+            {
+                options.Limits.MaxRequestBodySize = int.MaxValue; // if don't set default value is: 30 MB
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

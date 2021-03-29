@@ -49,6 +49,12 @@ namespace OnlineJudgeApi.Helpers
             // set memory and max process limit
             $"sudo cgset -r memory.limit_in_bytes={pMemLimitB} -r memory.swappiness=0 -r pids.max=1 {fileName}".Bash();
 
+            // enforce maximum time limit
+            if (timeLimitMs <= 0 || timeLimitMs > 10000)
+            {
+                timeLimitMs = 10000;
+            }
+
             // timeout uses a longer time limit value because it measures real time and not cpu time.
             // we let the process run longer just in case, and after we inspect its cpu time from /usr/bin/time output.
             // timeout of zero means the associated timeout is disabled.
@@ -65,6 +71,7 @@ namespace OnlineJudgeApi.Helpers
                 ExecutionMemory = 0,
                 Output = "",
                 Error = "",
+                SubmittedAt = DateTime.Now,
             };
 
             using (Process q = new Process())
@@ -97,10 +104,7 @@ namespace OnlineJudgeApi.Helpers
                 q.Start();
                 q.BeginOutputReadLine();
                 q.BeginErrorReadLine();
-
-                StreamWriter inputWriter = q.StandardInput;
-                inputWriter.Write(input);
-                inputWriter.Close();
+                q.StandardInput.WriteLineAsync(input);
 
                 q.WaitForExit();
 
@@ -164,7 +168,7 @@ namespace OnlineJudgeApi.Helpers
                     int idx = 0;
                     while (correctSoFar && idx < outputLines.Length)
                     {
-                        if (!outputLines.ElementAt(idx).Equals(tcOutputLines.ElementAt(idx)))
+                        if (!outputLines.ElementAt(idx).TrimEnd().Equals(tcOutputLines.ElementAt(idx).TrimEnd()))
                         {
                             correctSoFar = false;
                         }

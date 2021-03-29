@@ -2,13 +2,17 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IdentityModel.Tokens.Jwt;
+using System.IO;
 using System.Linq;
 using System.Security.Claims;
+using System.Text.Json;
 using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using OnlineJudgeApi.Dtos;
 using OnlineJudgeApi.Entities;
 using OnlineJudgeApi.Helpers;
@@ -85,12 +89,12 @@ namespace OnlineJudgeApi.Controllers
             return Ok(solvedTaskDtos);
         }
 
+        // Returns basic task info along with test case IDs if task belongs to user sending request
         // GET: api/Task/5
         [HttpGet("{id}")]
         public async Task<ActionResult<TaskDto>> GetTask(int id)
         {
             var task = await _context.Tasks.FindAsync(id);
-
             if (task == null)
             {
                 return NotFound();
@@ -98,20 +102,28 @@ namespace OnlineJudgeApi.Controllers
 
             await _context.Entry(task).Reference(t => t.User).LoadAsync();
 
+            TaskDto dto = mapper.Map<TaskDto>(task);
+
+            // Load tc IDs only, to avoid potential long texts from tc input/output
             if (User.Identity.IsAuthenticated)
             {
-
                 // Fetch current user id
                 int userId = int.Parse(User.FindFirst(JwtRegisteredClaimNames.Sub).Value);
 
                 // Load test cases only if they belong to current user
                 if (task.UserId == userId)
                 {
-                    await _context.Entry(task).Collection(t => t.TestCases).LoadAsync();
+                    IEnumerable<int> tcIds = await _context.TestCases
+                        .Where(tc => tc.TaskId == id)
+                        .Select(tc => tc.Id)
+                        .ToListAsync();
+
+                    foreach (int tcId in tcIds)
+                    {
+                        dto.TestCases.Add(new TestCaseDto { Id = tcId });
+                    }
                 }
             }
-
-            TaskDto dto = mapper.Map<TaskDto>(task);
 
             // Load tags and insert to DTO
             await _context.Entry(task).Collection(t => t.TaskTags).LoadAsync();
@@ -129,19 +141,42 @@ namespace OnlineJudgeApi.Controllers
         // POST: api/Task
         [Authorize]
         [HttpPost]
-        public async Task<ActionResult<TaskDto>> PostTask([FromBody]TaskDto taskDto)
+        [RequestFormLimits(ValueLengthLimit = int.MaxValue, MultipartBodyLengthLimit = int.MaxValue)]
+        [DisableRequestSizeLimit]
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> PostTask([FromForm] IList<IFormFile> inputs, [FromForm] IList<IFormFile> outputs, [FromForm] string taskDtoStr)
         {
+            TaskDto taskDto = JsonConvert.DeserializeObject<TaskDto>(taskDtoStr);
             if (_context.Tasks.Any(t => t.Name.Equals(taskDto.Name)))
             {
                 return BadRequest(new { Message = "There is already a task called " + taskDto.Name });
             }
-
+            
             // Fetch current user id
             int userId = int.Parse(User.FindFirst(JwtRegisteredClaimNames.Sub).Value);
 
             Entities.Task task = mapper.Map<Entities.Task>(taskDto);
             task.UserId = userId;
             task.TimeSubmitted = DateTime.Now;
+
+            // Add test cases to task object
+            int n = inputs.Count;
+            for (int i = 0; i < n; ++i)
+            {
+                StreamReader srin = new StreamReader(inputs[i].OpenReadStream());
+                Task<string> inputText = srin.ReadToEndAsync();
+
+                StreamReader srout = new StreamReader(outputs[i].OpenReadStream());
+                Task<string> outputText = srout.ReadToEndAsync();
+
+                string input = await inputText;
+                string output = await outputText;
+
+                srin.Close();
+                srout.Close();
+
+                task.TestCases.Add(new TestCase { Input = input, Output = output });
+            }
 
             _context.Tasks.Add(task);
 
@@ -176,13 +211,7 @@ namespace OnlineJudgeApi.Controllers
             await _context.SaveChangesAsync();
 
             TaskDto responseDto = mapper.Map<TaskDto>(task);
-
-            // Load tag info to return
-            foreach (TaskTag tt in task.TaskTags)
-            {
-                await _context.Entry(tt).Reference(t => t.Tag).LoadAsync();
-                responseDto.Tags.Add(mapper.Map<TagDto>(tt.Tag));
-            }
+            responseDto.TestCases = null;
 
             return CreatedAtAction("GetTask", new { id = task.Id }, responseDto);
         }
@@ -190,20 +219,19 @@ namespace OnlineJudgeApi.Controllers
         // Edits task along with test cases and tags
         // PUT: api/Task/5
         [Authorize]
+        [RequestFormLimits(ValueLengthLimit = int.MaxValue, MultipartBodyLengthLimit = int.MaxValue)]
+        [DisableRequestSizeLimit]
+        [Consumes("multipart/form-data")]
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutTask(int id, [FromBody]TaskDto taskDto)
+        public async Task<IActionResult> PutTask(int id, [FromForm] IList<IFormFile> inputs, [FromForm] IList<IFormFile> outputs, [FromForm] string taskDtoStr)
         {
-            if (id != taskDto.Id)
-            {
-                return BadRequest();
-            }
-
             Entities.Task task = await _context.Tasks.FindAsync(id);
             if (task == null)
             {
                 return NotFound();
             }
 
+            TaskDto taskDto = JsonConvert.DeserializeObject<TaskDto>(taskDtoStr);
             if (await _context.Tasks.AnyAsync(t => t.Id != id && t.Name.ToLower().Equals(taskDto.Name.ToLower())))
             {
                 return BadRequest(new { Message = "There is already a task called " + taskDto.Name });
@@ -221,8 +249,34 @@ namespace OnlineJudgeApi.Controllers
                 return Unauthorized();
             }
 
-            // Load test cases, tasktags
-            await _context.Entry(task).Collection(t => t.TestCases).LoadAsync();
+            // Remove marked TCs
+            foreach (TestCaseDto tcDto in taskDto.TestCases)
+            {
+                TestCase tc = new TestCase() { Id = tcDto.Id };
+                _context.TestCases.Attach(tc);
+                _context.TestCases.Remove(tc);
+            }
+
+            // Add new TCs
+            int n = inputs.Count;
+            for (int i = 0; i < n; ++i)
+            {
+                StreamReader srin = new StreamReader(inputs[i].OpenReadStream());
+                Task<string> inputText = srin.ReadToEndAsync();
+
+                StreamReader srout = new StreamReader(outputs[i].OpenReadStream());
+                Task<string> outputText = srout.ReadToEndAsync();
+
+                string input = await inputText;
+                string output = await outputText;
+
+                srin.Close();
+                srout.Close();
+
+                task.TestCases.Add(new TestCase { Input = input, Output = output });
+            }
+
+            // Load tasktags
             await _context.Entry(task).Collection(t => t.TaskTags).LoadAsync();
 
             // Update fields according to DTO
@@ -232,42 +286,7 @@ namespace OnlineJudgeApi.Controllers
             task.TimeLimit = taskDto.TimeLimit;
             task.Origin = taskDto.Origin;
 
-            // Handle test cases
-            int tcDiff = taskDto.TestCases.Count - task.TestCases.Count;
-            int tcCountMin = Math.Min(taskDto.TestCases.Count, task.TestCases.Count);
-
-            // Modify existing test cases
-            for (int i = 0; i < tcCountMin; ++i)
-            {
-                task.TestCases.ElementAt(i).Input = taskDto.TestCases.ElementAt(i).Input;
-                task.TestCases.ElementAt(i).Output = taskDto.TestCases.ElementAt(i).Output;
-            }
-
-            if (tcDiff > 0)
-            {
-                // Add new test cases if needed
-                for (int j = 0; j < tcDiff; ++j)
-                {
-                    task.TestCases.Add(new TestCase
-                    {
-                        Input = taskDto.TestCases.ElementAt(tcCountMin + j).Input,
-                        Output = taskDto.TestCases.ElementAt(tcCountMin + j).Output
-                    });
-                }
-            }
-            else if (tcDiff < 0)
-            {
-                // Delete excess test cases if needed
-                int numToDelete = -tcDiff;
-
-                for (int j = 0; j < numToDelete; ++j)
-                {
-                    task.TestCases.Remove(task.TestCases.Last());
-                }
-            }
-
             // Handle tags
-
             // Add tags whose names are not in DB
             foreach (TagDto tagDto in taskDto.Tags)
             {

@@ -1,10 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using OnlineJudgeApi.Dtos;
 using OnlineJudgeApi.Helpers;
-using System;
-using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Text;
@@ -15,6 +12,7 @@ using OnlineJudgeApi.Entities;
 namespace OnlineJudgeApi.Controllers
 {
     [Route("api/[controller]")]
+    [Authorize]
     [ApiController]
     public class TestCaseController : Controller
     {
@@ -29,7 +27,6 @@ namespace OnlineJudgeApi.Controllers
 
         // Return test case INPUT by id as a text file
         // GET: api/TestCase/5/input
-        [Authorize]
         [HttpGet("{id}/input")]
         public async Task<IActionResult> GetTestCaseInput(int id)
         {
@@ -44,9 +41,9 @@ namespace OnlineJudgeApi.Controllers
                 .Select(tc => tc.Task.User.Id)
                 .SingleOrDefaultAsync();
 
-            int userId = int.Parse(User.FindFirst(JwtRegisteredClaimNames.Sub).Value);
+            int currentUserId = int.Parse(User.FindFirst(JwtRegisteredClaimNames.Sub).Value);
 
-            if (userId != tcUserId)
+            if (currentUserId != tcUserId)
             {
                 return Unauthorized();
             }
@@ -62,7 +59,6 @@ namespace OnlineJudgeApi.Controllers
 
         // Return test case OUTPUT by id as a text file
         // GET: api/TestCase/5/output
-        [Authorize]
         [HttpGet("{id}/output")]
         public async Task<IActionResult> GetTestCaseOutput(int id)
         {
@@ -77,9 +73,8 @@ namespace OnlineJudgeApi.Controllers
                 .Select(tc => tc.Task.User.Id)
                 .SingleOrDefaultAsync();
 
-            int userId = int.Parse(User.FindFirst(JwtRegisteredClaimNames.Sub).Value);
-
-            if (userId != tcUserId)
+            int currentUserId = int.Parse(User.FindFirst(JwtRegisteredClaimNames.Sub).Value);
+            if (currentUserId != tcUserId)
             {
                 return Unauthorized();
             }
@@ -94,7 +89,6 @@ namespace OnlineJudgeApi.Controllers
         }
 
         // DELETE: api/TestCase/5
-        [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteTestCase(int id)
         {
@@ -109,9 +103,9 @@ namespace OnlineJudgeApi.Controllers
                 .Select(tc => tc.Task.User.Id)
                 .SingleOrDefaultAsync();
 
-            int userId = int.Parse(User.FindFirst(JwtRegisteredClaimNames.Sub).Value);
+            int currentUserId = int.Parse(User.FindFirst(JwtRegisteredClaimNames.Sub).Value);
 
-            if (userId != tcUserId)
+            if (currentUserId != tcUserId)
             {
                 return Unauthorized();
             }

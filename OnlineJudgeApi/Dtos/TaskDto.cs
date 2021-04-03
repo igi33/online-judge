@@ -25,6 +25,8 @@ namespace OnlineJudgeApi.Dtos
 
         public string Origin { get; set; }
 
+        public bool IsPublic { get; set; }
+
         public virtual UserDto User { get; set; }
 
         public virtual ICollection<TestCaseDto> TestCases { get; set; }

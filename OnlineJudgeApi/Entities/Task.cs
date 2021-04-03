@@ -27,6 +27,8 @@ namespace OnlineJudgeApi.Entities
 
         public string Origin { get; set; }
 
+        public bool IsPublic { get; set; }
+
         public int? UserId { get; set; }
 
         [ForeignKey("UserId")]

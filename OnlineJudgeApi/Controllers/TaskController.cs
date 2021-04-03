@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IdentityModel.Tokens.Jwt;
 using System.IO;
 using System.Linq;
-using System.Security.Claims;
-using System.Text.Json;
 using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
@@ -37,7 +34,16 @@ namespace OnlineJudgeApi.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<TaskDto>>> GetTasks(int tagId = 0, int limit = 0, int offset = 0)
         {
-            var query = _context.Tasks.Where(t => tagId != 0 ? t.TaskTags.Any(tt => tt.TagId == tagId) : t.Id > 0).Include(t => t.User).OrderBy(t => t.Id);
+            int currentUserId = 0;
+            if (User.Identity.IsAuthenticated)
+            {
+                currentUserId = int.Parse(User.FindFirst(JwtRegisteredClaimNames.Sub).Value);
+            }
+
+            var query = _context.Tasks
+                .Where(t => (tagId != 0 ? t.TaskTags.Any(tt => tt.TagId == tagId) : t.Id > 0) && (t.IsPublic || t.UserId == currentUserId))
+                .Include(t => t.User)
+                .OrderBy(t => t.Id);
 
             List<Entities.Task> tasks;
             if (limit != 0)
@@ -53,39 +59,33 @@ namespace OnlineJudgeApi.Controllers
             return Ok(taskDtos);
         }
 
-        // Get list of solved tasks by user, possibly paged
+        // Get list of solved public tasks by user, possibly paged
         // GET: api/Task/solvedby/5?limit=0&offset=0
         [HttpGet("solvedby/{userId}")]
         public async Task<ActionResult<IEnumerable<TaskDto>>> GetSolvedByUser(int userId, int limit = 0, int offset = 0)
         {
-            var query = _context.Submissions.Where(s => s.UserId == userId && s.Status.Equals("AC"))
-                .Include(s => s.Task)
-                .ThenInclude(t => t.User)
-                .OrderBy(s => s.Id);
+            var query = _context.Submissions.Where(s => s.UserId == userId && s.Status.Equals("AC") && s.Task.IsPublic)
+                .OrderBy(s => s.Id)
+                .Select(s => s.TaskId)
+                .Distinct();
 
-            List<Submission> acceptedSubmissionsByUser;
+            HashSet<int> solvedTaskIds;
             if (limit != 0)
             {
-                acceptedSubmissionsByUser = await query.Skip(offset).Take(limit).ToListAsync();
+                solvedTaskIds = query.Skip(offset).Take(limit).ToHashSet();
             }
             else
             {
-                acceptedSubmissionsByUser = await query.ToListAsync();
+                solvedTaskIds = query.ToHashSet();
             }
 
-            HashSet<int> taskIds = new HashSet<int>(); // set of solved task IDs
-            List<TaskDto> solvedTaskDtos = new List<TaskDto>();
+            List<Entities.Task> tasks = await _context.Tasks
+                .Where(t => solvedTaskIds.Contains(t.Id))
+                .Include(t => t.User)
+                .OrderBy(t => t.Id)
+                .ToListAsync();
 
-            foreach (Submission submission in acceptedSubmissionsByUser)
-            {
-                if (!taskIds.Contains(submission.TaskId))
-                {
-                    taskIds.Add(submission.TaskId);
-                    TaskDto dto = mapper.Map<TaskDto>(submission.Task);
-                    solvedTaskDtos.Add(dto);
-                }
-            }
-
+            var solvedTaskDtos = mapper.Map<IList<TaskDto>>(tasks);
             return Ok(solvedTaskDtos);
         }
 
@@ -94,7 +94,13 @@ namespace OnlineJudgeApi.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<TaskDto>> GetTask(int id)
         {
-            var task = await _context.Tasks.FindAsync(id);
+            int currentUserId = 0;
+            if (User.Identity.IsAuthenticated)
+            {
+                currentUserId = int.Parse(User.FindFirst(JwtRegisteredClaimNames.Sub).Value);
+            }
+
+            Entities.Task task = await _context.Tasks.SingleOrDefaultAsync(t => t.Id == id && (t.IsPublic || t.UserId == currentUserId));
             if (task == null)
             {
                 return NotFound();
@@ -105,13 +111,10 @@ namespace OnlineJudgeApi.Controllers
             TaskDto dto = mapper.Map<TaskDto>(task);
 
             // Load tc IDs only, to avoid potential long texts from tc input/output
-            if (User.Identity.IsAuthenticated)
+            if (currentUserId != 0)
             {
-                // Fetch current user id
-                int userId = int.Parse(User.FindFirst(JwtRegisteredClaimNames.Sub).Value);
-
                 // Load test cases only if they belong to current user
-                if (task.UserId == userId)
+                if (task.UserId == currentUserId)
                 {
                     IEnumerable<int> tcIds = await _context.TestCases
                         .Where(tc => tc.TaskId == id)
@@ -125,7 +128,7 @@ namespace OnlineJudgeApi.Controllers
                 }
             }
 
-            // Load tags and insert to DTO
+            // Load tags and add to DTO
             await _context.Entry(task).Collection(t => t.TaskTags).LoadAsync();
             foreach (TaskTag tt in task.TaskTags)
             {
@@ -152,12 +155,12 @@ namespace OnlineJudgeApi.Controllers
                 return BadRequest(new { Message = "There is already a task called " + taskDto.Name });
             }
             
-            // Fetch current user id
-            int userId = int.Parse(User.FindFirst(JwtRegisteredClaimNames.Sub).Value);
+            int currentUserId = int.Parse(User.FindFirst(JwtRegisteredClaimNames.Sub).Value);
 
             Entities.Task task = mapper.Map<Entities.Task>(taskDto);
-            task.UserId = userId;
+            task.UserId = currentUserId;
             task.TimeSubmitted = DateTime.Now;
+            task.IsPublic = false;
 
             // Add test cases to task object
             int n = inputs.Count;
@@ -225,10 +228,18 @@ namespace OnlineJudgeApi.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> PutTask(int id, [FromForm] IList<IFormFile> inputs, [FromForm] IList<IFormFile> outputs, [FromForm] string taskDtoStr)
         {
-            Entities.Task task = await _context.Tasks.FindAsync(id);
+            int currentUserId = int.Parse(User.FindFirst(JwtRegisteredClaimNames.Sub).Value);
+
+            Entities.Task task = await _context.Tasks.SingleOrDefaultAsync(t => t.Id == id && (t.IsPublic || t.UserId == currentUserId));
             if (task == null)
             {
                 return NotFound();
+            }
+
+            if (task.UserId != currentUserId)
+            {
+                // Task doesn't belong to current user, edit not allowed
+                return Unauthorized();
             }
 
             TaskDto taskDto = JsonConvert.DeserializeObject<TaskDto>(taskDtoStr);
@@ -239,15 +250,6 @@ namespace OnlineJudgeApi.Controllers
 
             // Load creator of task
             await _context.Entry(task).Reference(t => t.User).LoadAsync();
-
-            // Fetch current user id
-            int userId = int.Parse(User.FindFirst(JwtRegisteredClaimNames.Sub).Value);
-
-            if (task.UserId != userId)
-            {
-                // Task doesn't belong to current user, edit not allowed
-                return Unauthorized();
-            }
 
             // Remove marked TCs
             foreach (TestCaseDto tcDto in taskDto.TestCases)
@@ -360,15 +362,15 @@ namespace OnlineJudgeApi.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteTask(int id)
         {
-            Entities.Task task = await _context.Tasks.FindAsync(id);
+            int currentUserId = int.Parse(User.FindFirst(JwtRegisteredClaimNames.Sub).Value);
+
+            Entities.Task task = await _context.Tasks.SingleOrDefaultAsync(t => t.Id == id && (t.IsPublic || t.UserId == currentUserId));
             if (task == null)
             {
                 return NotFound();
             }
 
-            int userId = int.Parse(User.FindFirst(JwtRegisteredClaimNames.Sub).Value);
-
-            if (task.UserId != userId)
+            if (task.UserId != currentUserId)
             {
                 // task doesn't belong to current user, deletion not allowed
                 return Unauthorized();

@@ -31,12 +31,17 @@ namespace OnlineJudgeApi.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<SubmissionDto>>> GetSubmissions(int taskId = 0, int userId = 0, int limit = 0, int offset = 0)
         {
+            int currentUserId = 0;
+            if (User.Identity.IsAuthenticated)
+            {
+                currentUserId = int.Parse(User.FindFirst(JwtRegisteredClaimNames.Sub).Value);
+            }
+
             var query = _context.Submissions.Include(s => s.Task).Include(s => s.User).Include(s => s.ComputerLanguage)
-                .Where(s => (taskId != 0 ? s.TaskId == taskId : s.TaskId > 0) && (userId != 0 ? s.UserId == userId : s.UserId > 0))
+                .Where(s => (taskId != 0 ? s.TaskId == taskId : s.TaskId > 0) && (userId != 0 ? s.UserId == userId : s.UserId > 0) && (s.Task.IsPublic || s.Task.UserId == currentUserId))
                 .OrderByDescending(s => s.Id);
 
             List<Submission> submissions;
-
             if (limit != 0)
             {
                 submissions = await query.Skip(offset).Take(limit).ToListAsync();
@@ -47,13 +52,6 @@ namespace OnlineJudgeApi.Controllers
             }
 
             var submissionDtos = mapper.Map<IList<SubmissionDto>>(submissions);
-
-            int currentUserId = 0; // User not logged in
-            if (User.Identity.IsAuthenticated)
-            {
-                // Fetch current user id
-                currentUserId = int.Parse(User.FindFirst(JwtRegisteredClaimNames.Sub).Value);
-            }
             foreach (SubmissionDto sDto in submissionDtos)
             {
                 if (currentUserId == 0 || sDto.User.Id != currentUserId)
@@ -70,7 +68,13 @@ namespace OnlineJudgeApi.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<SubmissionDto>> GetSubmission(int id)
         {
-            var submission = await _context.Submissions.FindAsync(id);
+            int currentUserId = 0;
+            if (User.Identity.IsAuthenticated)
+            {
+                currentUserId = int.Parse(User.FindFirst(JwtRegisteredClaimNames.Sub).Value);
+            }
+
+            var submission = await _context.Submissions.SingleOrDefaultAsync(s => s.Id == id && (s.Task.IsPublic || s.Task.UserId == currentUserId));
             if (submission == null)
             {
                 return NotFound();
@@ -82,15 +86,9 @@ namespace OnlineJudgeApi.Controllers
 
             SubmissionDto dto = mapper.Map<SubmissionDto>(submission);
 
-            int currentUserId = 0; // User not logged in
-            if (User.Identity.IsAuthenticated)
-            {
-                // Fetch current user id
-                currentUserId = int.Parse(User.FindFirst(JwtRegisteredClaimNames.Sub).Value);
-            }
+            // Hide source code if submission somebody else's
             if (currentUserId == 0 || dto.User.Id != currentUserId)
             {
-                // Hide source code
                 dto.SourceCode = "";
             }
 
@@ -102,17 +100,23 @@ namespace OnlineJudgeApi.Controllers
         [HttpGet("task/{taskId}/best")]
         public async Task<ActionResult<IEnumerable<SubmissionDto>>> GetBestSubmissionsOfTask(int taskId, int limit = 10)
         {
+            int currentUserId = 0;
+            if (User.Identity.IsAuthenticated)
+            {
+                currentUserId = int.Parse(User.FindFirst(JwtRegisteredClaimNames.Sub).Value);
+            }
+
             var submissions = await _context.Submissions.Include(s => s.User).Include(s => s.ComputerLanguage)
-                .Where(s => s.TaskId == taskId && s.Status.Equals("AC"))
+                .Where(s => s.TaskId == taskId && s.Status.Equals("AC") && (s.Task.IsPublic || currentUserId > 0 && s.Task.UserId == currentUserId))
                 .OrderBy(s => s.ExecutionTime)
                 .Take(limit)
                 .ToListAsync();
 
             var submissionDtos = mapper.Map<IList<SubmissionDto>>(submissions);
 
+            // Hide source codes
             foreach (SubmissionDto sDto in submissionDtos)
             {
-                // Hide source code
                 sDto.SourceCode = "";
             }
 
@@ -124,8 +128,10 @@ namespace OnlineJudgeApi.Controllers
         [HttpPost("task/{taskId}")]
         public async Task<ActionResult<SubmissionDto>> PostSubmission(int taskId, [FromBody] SubmissionDto submissionDto)
         {
+            int currentUserId = int.Parse(User.FindFirst(JwtRegisteredClaimNames.Sub).Value);
+
             // Get task info
-            Entities.Task task = await _context.Tasks.FindAsync(taskId);
+            Entities.Task task = await _context.Tasks.SingleOrDefaultAsync(t => t.Id == taskId && (t.IsPublic || t.UserId == currentUserId));
             if (task == null)
             {
                 return BadRequest();
@@ -141,14 +147,11 @@ namespace OnlineJudgeApi.Controllers
             // Get test cases
             await _context.Entry(task).Collection(t => t.TestCases).LoadAsync();
 
-            // Fetch current user id
-            int userId = int.Parse(User.FindFirst(JwtRegisteredClaimNames.Sub).Value);
-
             Submission submission = new Submission
             {
                 SourceCode = submissionDto.SourceCode,
                 LangId = submissionDto.LangId,
-                UserId = userId,
+                UserId = currentUserId,
                 TimeSubmitted = DateTime.Now,
                 TaskId = taskId,
                 Status = "UD",

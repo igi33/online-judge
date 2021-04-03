@@ -84,7 +84,8 @@ CREATE TABLE `tasks` (
   `timelimit` int(10) UNSIGNED NOT NULL,
   `userid` int(10) UNSIGNED NOT NULL,
   `timesubmitted` datetime NOT NULL,
-  `origin` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL
+  `origin` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `ispublic` tinyint(1) UNSIGNED NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------

@@ -64,6 +64,21 @@ namespace OnlineJudgeApi.Controllers
             return Ok(submissionDtos);
         }
 
+        // Get recent submissions count, possibly filtered by user id or task id
+        // GET: api/Submission/count?taskId=0&userId=0
+        [HttpGet("count")]
+        public async Task<ActionResult<int>> GetCount(int taskId = 0, int userId = 0)
+        {
+            int currentUserId = 0;
+            if (User.Identity.IsAuthenticated)
+            {
+                currentUserId = int.Parse(User.FindFirst(JwtRegisteredClaimNames.Sub).Value);
+            }
+
+            int count = await _context.Submissions.CountAsync(s => (taskId != 0 ? s.TaskId == taskId : s.TaskId > 0) && (userId != 0 ? s.UserId == userId : s.UserId > 0) && (s.Task.IsPublic || s.Task.UserId == currentUserId));
+            return Ok(count);
+        }
+
         // GET: api/Submission/5
         [HttpGet("{id}")]
         public async Task<ActionResult<SubmissionDto>> GetSubmission(int id)

@@ -64,7 +64,8 @@ namespace OnlineJudgeApi.Controllers
         [HttpGet("solvedby/{userId}")]
         public async Task<ActionResult<IEnumerable<TaskDto>>> GetSolvedByUser(int userId, int limit = 0, int offset = 0)
         {
-            var query = _context.Submissions.Where(s => s.UserId == userId && s.Status.Equals("AC") && s.Task.IsPublic)
+            var query = _context.Submissions
+                .Where(s => s.UserId == userId && s.Status.Equals("AC") && s.Task.IsPublic)
                 .OrderBy(s => s.Id)
                 .Select(s => s.TaskId)
                 .Distinct();
@@ -87,6 +88,20 @@ namespace OnlineJudgeApi.Controllers
 
             var solvedTaskDtos = mapper.Map<IList<TaskDto>>(tasks);
             return Ok(solvedTaskDtos);
+        }
+
+        // Get solved public tasks by user count
+        // GET: api/Task/solvedby/5/count
+        [HttpGet("solvedby/{userId}/count")]
+        public async Task<ActionResult<int>> GetSolvedByUserCount(int userId = 0)
+        {
+            int count = await _context.Submissions
+                .Where(s => s.UserId == userId && s.Status.Equals("AC") && s.Task.IsPublic)
+                .Select(s => s.TaskId)
+                .Distinct()
+                .CountAsync();
+
+            return Ok(count);
         }
 
         // Returns basic task info along with test case IDs if task belongs to user sending request

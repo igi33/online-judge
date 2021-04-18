@@ -126,13 +126,11 @@ namespace OnlineJudgeApi.Helpers
                         // meaning the memory limit was breached
                         grade.Status = "MLE";
                     }
-                    else if (q.ExitCode == 143 || totalCpuTimeMs > timeLimitMs)
+                    else if (q.ExitCode == 143)
                     {
                         // timeout sent SIGTERM
                         // the process exited with code 137
                         // meaning the time limit was definitely breached
-                        // OR
-                        // actual CPU time breaches the limit
                         grade.Status = "TLE";
                         grade.ExecutionTime = timeLimitMs;
                     }
@@ -142,6 +140,12 @@ namespace OnlineJudgeApi.Helpers
                         // Rejected
                         grade.Status = "RTE";
                     }
+                }
+                else if (totalCpuTimeMs > timeLimitMs)
+                {
+                    // Successfully executed but actual CPU time breaches the limit
+                    grade.Status = "TLE";
+                    grade.ExecutionTime = timeLimitMs;
                 }
                 else
                 {
@@ -189,7 +193,7 @@ namespace OnlineJudgeApi.Helpers
 
             // delete cgroup
             $"sudo cgdelete -g memory,pids:{fileName}".Bash();
-            
+
             // delete time output file
             System.IO.File.Delete(timeOutputFilePath);
 
